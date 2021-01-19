@@ -1,13 +1,13 @@
 /**
  * User model module.
- * @file 用户数据模型
+ * @User 用户数据模型
  * @module model/user
  * @author lzzz
  */
 // 自增ID
 const autoIncrement = require('mongoose-auto-increment');
 // 1.引包
-const { mongoose } = require('../utils/mongoose')
+const { mongoose } = require('../middleware/mongoose')
 
 // 2.拿到schema
 const Schema = mongoose.Schema;
@@ -15,7 +15,7 @@ const Schema = mongoose.Schema;
 // 3.设计集合结构（用户表、表结构）
 const userSchema = new Schema({
     // 姓名 6-12位,包含数字、字母、特殊字符
-    username: { type: String, require: true },
+    username: { type: String, require: true, validate: /\S+/ },
 
     // 密码 8-16位，aes加密
     password: { type: String, require: true },

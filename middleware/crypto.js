@@ -1,12 +1,11 @@
 const CryptoJS = require("crypto-js");
 const { CRYPTO_KEY, CRYPTO_IV } = require('../config/config')
-const key = CryptoJS.enc.Utf8.parse(CRYPTO_KEY);
+const key = CryptoJS.enc.Utf8.parse(CRYPTO_KEY); // 秘钥
 const iv = CryptoJS.enc.Utf8.parse(CRYPTO_IV);
 
 /**
  * aes加密
  * @param {String} data 未加密的数据
- * @param {String} key 秘钥
  * @return {String} 加密后数据
  */
 const aesEncrypt = (data) => {
@@ -21,7 +20,6 @@ const aesEncrypt = (data) => {
 /**
  * aes解密
  * @param {String} encrypted 加密过的数据
- * @param {String} key 秘钥
  * @return {String} 解密后数据
  */
 const aesDecrypt = (encrypted) => {

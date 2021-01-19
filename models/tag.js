@@ -1,16 +1,16 @@
 /**
  * Tag model module.
- * @tag 标签数据模型
+ * @Tag 标签数据模型
  * @module model/Tag
  * @author lzzz
  */
 const autoIncrement = require('mongoose-auto-increment');
-const { mongoose } = require('../utils/mongoose')
+const { mongoose } = require('../middleware/mongoose')
 const Schema = mongoose.Schema;
 
 const TagSchema = new Schema({
     // 标签名称
-    name: { type: String, require: true },
+    name: { type: String, require: true, validate: /\S+/ },
 
     // 标签描述
     desc: String,

@@ -28,12 +28,10 @@ const uploader = multer({ storage: storage })
 /* GET home page. */
 /**
  * 图片上传
- * @param {String} _id 用户id
  */
 
 // image: 为name的名字  single为uploader自带方法，uploadHead为回调函数
-router.post('/', uploader.single('file'), async function (req, res, next) {
-    console.log(req.file)  // 获取图片  files获取多张图片
+router.post('/', uploader.single('file'), async (req, res, next) => {
     const file = req.file
     //获取后缀名
     const extname = path.extname(file.originalname)
@@ -48,28 +46,23 @@ router.post('/', uploader.single('file'), async function (req, res, next) {
          *  @param filepath 源文件地址路径
          *  @param filename 改名后的地址
          */
-        fs.rename(filepath, filename, err => {
+        fs.rename(filepath, filename, async err => {
             if (!err) {
                 // 保存到数据库
-                new File({
+                const f = await new File({
                     name: file.originalname,
                     url: '/images/' + imageUrl,
                     size: file.size,
                     type: file.mimetype
+                }).save()
+
+                res.status(200).json({
+                    code: CODE.OK,
+                    data: f,
+                    msg: '上传成功'
                 })
-                    .save()
-                    .then(f => {
-                        if (f) {
-                            res.status(200).json({
-                                code: CODE.OK,
-                                data: f,
-                                msg: '上传成功'
-                            })
-                        }
-                    })
             }
         })
-
     } catch (err) {
         next(err)
     }

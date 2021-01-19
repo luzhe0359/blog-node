@@ -1,21 +1,21 @@
 const express = require('express');
 const router = express.Router();
 
-const Tag = require('../models/tag')
+const Category = require('../models/category')
 const { CODE } = require('../config/config')
 
-// 添加标签
+// 添加分类
 router.post('/add', async (req, res, next) => {
   let body = req.body
   try {
-    const tag = await Tag.find({ name: body.name })
-    if (tag.length > 0) {
+    const category = await Category.find({ name: body.name })
+    if (category.length > 0) {
       return res.status(200).json({
         code: CODE.OTHER_ERR,
-        msg: '该标签已添加'
+        msg: '该分类已添加'
       })
     }
-    const r = await new Tag(body).save()
+    const r = await new Category(body).save()
 
     res.status(200).json({
       code: CODE.OK,
@@ -27,7 +27,7 @@ router.post('/add', async (req, res, next) => {
   }
 });
 
-// 查找标签列表
+// 查找分类列表
 router.post('/', async (req, res, next) => {
   const body = req.body
   try {
@@ -38,7 +38,7 @@ router.post('/', async (req, res, next) => {
     }
 
     // 总数
-    const total = await Tag.countDocuments(filter)
+    const total = await Category.countDocuments(filter)
     // 分页逻辑
     let pageNum = parseInt(body.pageNum) || 1 // 页码
     let limit = body.pageSize === 0 ? total : parseInt(body.pageSize) || 0 // 每页条数 (0 获取所有, 不传值获取所有)
@@ -46,7 +46,7 @@ router.post('/', async (req, res, next) => {
     let sort = {} // 排序
     sort[body.sortBy || 'createTime'] = body.descending ? 1 : -1
 
-    const r = await Tag.find(filter)
+    const r = await Category.find(filter)
       .select(select) // 过滤展示字段
       .sort(sort) // 排序
       .skip(skip) // 跳过多少条
@@ -55,7 +55,7 @@ router.post('/', async (req, res, next) => {
     return res.status(200).json({
       code: CODE.OK,
       data: r,
-      msg: '标签列表获取成功',
+      msg: '分类列表获取成功',
       pageNum: pageNum,
       pageSize: limit,
       sortBy: body.sortBy,
@@ -67,19 +67,19 @@ router.post('/', async (req, res, next) => {
 });
 
 
-// 根据_id 编辑标签信息
+// 根据_id 编辑分类信息
 router.put('/:_id', async (req, res, next) => {
   const body = req.body
   try {
-    const tag = await Tag.find({ name: body.name })
-    if (tag.length > 0) {
+    const Category = await Category.find({ name: body.name })
+    if (Category.length > 0) {
       return res.status(200).json({
         code: CODE.OTHER_ERR,
-        msg: '该标签已添加'
+        msg: '该分类已添加'
       })
     }
 
-    const r = await Tag.findByIdAndUpdate(req.params._id, body, { new: true })
+    const r = await Category.findByIdAndUpdate(req.params._id, body, { new: true })
 
     return res.status(200).json({
       code: CODE.OK,
@@ -91,10 +91,10 @@ router.put('/:_id', async (req, res, next) => {
   }
 });
 
-// 根据_id 删除单个标签
+// 根据_id 删除单个分类
 router.delete('/:_id', async (req, res, next) => {
   try {
-    const r = await Tag.findByIdAndDelete(req.params._id)
+    const r = await Category.findByIdAndDelete(req.params._id)
 
     return res.status(200).json({
       code: CODE.OK,
