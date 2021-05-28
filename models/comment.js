@@ -13,7 +13,7 @@ const CommentSchema = new Schema({
     articleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Article', required: true },
 
     // 谁在评论
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    from: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 
     // 评论内容
     content: { type: String, required: true, validate: /\S+/ },
@@ -40,7 +40,7 @@ const CommentSchema = new Schema({
             content: { type: String, required: true, validate: /\S+/ },
 
             // 状态 | 0:待审核 | 1:已通过 | -1:未通过
-            state: { type: Number, default: 1 },
+            state: { type: Number, default: 0 },
 
             // 评论层级 | 2:1级评论的回复内容 | 3:2级评论的回复内容
             level: { type: Number, default: 2 },
@@ -50,11 +50,8 @@ const CommentSchema = new Schema({
         },
     ],
 
-    // 状态 | 0:待审核 | 1:已通过 | -1:已删除 | -2:垃圾评论
+    // 状态(先发表，后审核) | 0:待审核 | 1:已通过 | -1:未通过
     state: { type: Number, default: 0 },
-
-    // 是否审核通过
-    isHandle: { type: Boolean, default: false },
 
     // 创建时间
     createTime: { type: Number, default: Date.now },

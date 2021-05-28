@@ -1,21 +1,13 @@
 const express = require('express');
 const router = express.Router();
 
-const Tag = require('../models/tag')
+const Timeline = require('../models/timeline')
 const { CODE } = require('../config/config')
 
-// 添加标签
+// 添加时间线
 router.post('/add', async (req, res, next) => {
-  const { name } = req.body
   try {
-    const tag = await Tag.find({ name })
-    if (tag.length > 0) {
-      return res.status(200).json({
-        code: CODE.OTHER_ERR,
-        msg: '该标签已添加'
-      })
-    }
-    const r = await new Tag(req.body).save()
+    const r = await new Timeline(req.body).save()
 
     res.status(200).json({
       code: CODE.OK,
@@ -27,24 +19,25 @@ router.post('/add', async (req, res, next) => {
   }
 });
 
-// 查找标签列表
+// 查找时间线列表
 router.get('/list', async (req, res, next) => {
-  const { name = '', pageNum = 1, pageSize = 0, sortBy = 'createTime', descending = 1 } = req.query
+  const { title = '', pageNum = 1, pageSize = 0, sortBy = 'createTime', descending = -1 } = req.query
   try {
+    // 查询条件
     let filter = {}
-    name && (filter.name = { $regex: new RegExp(name, 'i') })
+    title && (filter.title = { $regex: new RegExp(title, 'i') })
     let select = {
     }
 
     // 总数
-    const total = await Tag.countDocuments(filter)
-    // 分页逻辑
+    const total = await Timeline.countDocuments(filter)
+    // 分页
     let limit = pageSize === 0 ? total : parseInt(pageSize)
     let skip = (pageNum - 1) * limit
     let sort = {}
     sort[sortBy] = parseInt(descending)
 
-    const r = await Tag.find(filter)
+    const r = await Timeline.find(filter)
       .select(select)
       .sort(sort)
       .skip(skip)
@@ -53,7 +46,7 @@ router.get('/list', async (req, res, next) => {
     return res.status(200).json({
       code: CODE.OK,
       data: r,
-      msg: '标签列表获取成功',
+      msg: '时间线列表获取成功',
       pageNum: pageNum - 0,
       pageSize: limit,
       sortBy: sortBy,
@@ -69,7 +62,7 @@ router.get('/list', async (req, res, next) => {
 // 根据_id 编辑标签信息
 router.put('/:_id', async (req, res, next) => {
   try {
-    const r = await Tag.findByIdAndUpdate(req.params._id, req.body, { new: true })
+    const r = await Timeline.findByIdAndUpdate(req.params._id, req.body)
 
     return res.status(200).json({
       code: CODE.OK,
@@ -81,10 +74,41 @@ router.put('/:_id', async (req, res, next) => {
   }
 });
 
-// 根据_id 删除单个标签
+// 根据_id 查找单个时间线
+router.get('/:_id', async (req, res, next) => {
+  try {
+    let r = await Timeline.findById(req.params._id)
+
+    return res.status(200).json({
+      code: CODE.OK,
+      data: r,
+      msg: '时间线信息获取成功'
+    })
+  } catch (err) {
+    next(err)
+  }
+});
+
+
+// 根据_id 编辑时间线信息
+router.put('/:_id', async (req, res, next) => {
+  try {
+    const r = await Timeline.findByIdAndUpdate(req.params._id, req.body)
+
+    return res.status(200).json({
+      code: CODE.OK,
+      data: r,
+      msg: '修改成功'
+    })
+  } catch (err) {
+    next(err)
+  }
+});
+
+// 根据_id 删除单个时间线
 router.delete('/:_id', async (req, res, next) => {
   try {
-    await Tag.findByIdAndDelete(req.params._id)
+    await Timeline.findByIdAndDelete(req.params._id)
 
     return res.status(200).json({
       code: CODE.OK,
@@ -94,5 +118,6 @@ router.delete('/:_id', async (req, res, next) => {
     next(err)
   }
 });
+
 
 module.exports = router;

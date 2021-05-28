@@ -20,8 +20,8 @@ const userSchema = new Schema({
     // 密码 8-16位，aes加密
     password: { type: String, require: true },
 
-    // 角色 vip/svip
-    role: { type: String, require: true, default: 'VIP' },
+    // 角色 admin/editor
+    role: { type: Array, require: true, default: ['editor'] },
 
     // 昵称 2-6位
     nickname: { type: String, default: '暂无昵称' },

@@ -6,16 +6,16 @@ const { CODE } = require('../config/config')
 
 // 添加分类
 router.post('/add', async (req, res, next) => {
-  let body = req.body
+  const { name } = req.body
   try {
-    const category = await Category.find({ name: body.name })
+    const category = await Category.find({ name })
     if (category.length > 0) {
       return res.status(200).json({
         code: CODE.OTHER_ERR,
         msg: '该分类已添加'
       })
     }
-    const r = await new Category(body).save()
+    const r = await new Category(req.body).save()
 
     res.status(200).json({
       code: CODE.OK,
@@ -28,37 +28,37 @@ router.post('/add', async (req, res, next) => {
 });
 
 // 查找分类列表
-router.post('/', async (req, res, next) => {
-  const body = req.body
+router.get('/list', async (req, res, next) => {
+  const { name = '', pageNum = 1, pageSize = 10, sortBy = 'createTime', descending = 1 } = req.query
   try {
-    let name = body.name || ''
-    let filter = {} // 定义查询条件
+    // 查询条件
+    let filter = {}
     name && (filter.name = { $regex: new RegExp(name, 'i') })
-    let select = { // 规定不返回的字段
+    let select = {
     }
 
     // 总数
     const total = await Category.countDocuments(filter)
     // 分页逻辑
-    let pageNum = parseInt(body.pageNum) || 1 // 页码
-    let limit = body.pageSize === 0 ? total : parseInt(body.pageSize) || 0 // 每页条数 (0 获取所有, 不传值获取所有)
-    let skip = (pageNum - 1) * limit // 跳过多少条
-    let sort = {} // 排序
-    sort[body.sortBy || 'createTime'] = body.descending ? 1 : -1
+    let limit = pageSize === 0 ? total : parseInt(pageSize)
+    let skip = (pageNum - 1) * limit
+    let sort = {}
+    sort[sortBy] = parseInt(descending)
 
     const r = await Category.find(filter)
-      .select(select) // 过滤展示字段
-      .sort(sort) // 排序
-      .skip(skip) // 跳过多少条
-      .limit(limit) // 每页多少条
+      .select(select)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
 
     return res.status(200).json({
       code: CODE.OK,
       data: r,
       msg: '分类列表获取成功',
-      pageNum: pageNum,
+      pageNum: pageNum - 0,
       pageSize: limit,
-      sortBy: body.sortBy,
+      sortBy: sortBy,
+      sort: descending - 0,
       total: total
     })
   } catch (err) {
@@ -69,17 +69,8 @@ router.post('/', async (req, res, next) => {
 
 // 根据_id 编辑分类信息
 router.put('/:_id', async (req, res, next) => {
-  const body = req.body
   try {
-    const Category = await Category.find({ name: body.name })
-    if (Category.length > 0) {
-      return res.status(200).json({
-        code: CODE.OTHER_ERR,
-        msg: '该分类已添加'
-      })
-    }
-
-    const r = await Category.findByIdAndUpdate(req.params._id, body, { new: true })
+    const r = await Category.findByIdAndUpdate(req.params._id, req.body, { new: true })
 
     return res.status(200).json({
       code: CODE.OK,

@@ -3,7 +3,8 @@ const router = express.Router();
 
 /* GET home page. */
 router.get('/', async (req, res, next) => {
-  res.send('express start success ...')
+  console.log('111');
+  res.send('web express start success ...')
 });
 
 module.exports = router;

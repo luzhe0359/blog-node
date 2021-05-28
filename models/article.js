@@ -33,11 +33,11 @@ const ArticleSchema = new Schema({
     // 封面
     imgUrl: { type: String, default: '' },
 
-    // 文章类型  | 1:原创 | 2:转载 | 3:混合
+    // 文章类型  | 1:原创 | 2:转载 
     type: { type: Number, default: 1 },
 
-    // 文章发布状态 | 0:草稿 | 1:已发布
-    state: { type: Number, default: 0 },
+    // 文章发布状态 | 1:已发布 | 2:草稿 | 3:垃圾箱
+    state: { type: Number, default: 1 },
 
     // 文章标签
     tags: [{ type: Schema.Types.ObjectId, ref: 'Tag', required: true }],
@@ -45,7 +45,7 @@ const ArticleSchema = new Schema({
     // 评论
     comments: [{ type: Schema.Types.ObjectId, ref: 'Comment', required: true }],
 
-    // // 文章分类
+    // 文章分类
     category: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
 
     // 点赞的用户

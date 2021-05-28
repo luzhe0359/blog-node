@@ -1,5 +1,6 @@
+const url = require('url')
 const jwt = require('jsonwebtoken');
-const { REDIS, CODE, CRYPTO_KEY, TOKEN_TIME } = require('../config/config')
+const { REDIS, CODE, CRYPTO_KEY, TOKEN_TIME, ROUTE_WHITE_LIST } = require('../config/config')
 const { redisCli } = require('./redis')
 
 
@@ -44,32 +45,25 @@ function getToken (headers) {
     }
 }
 
-/**
- * 请求头中获取用户信息
- * @param {Object} headers 请求头
- * @return {String} userInfo 
- */
-function getUserInfo (headers) {
-    const token = getToken(headers)
-    return token ? jwtDecrypt(token) : null
-}
-
 // 刷新 token
 function refreshToken (req, res, next) {
     let token = getToken(req.headers)
+    const user = req.user // 当前用户
     // 没有token，则不去redis里查，jwt中间件会自动校验是否在白名单中
     if (!token) {
         return next()
     }
-    const userInfo = jwtDecrypt(token)
-    redisCli.get(userInfo._id, (err, reply) => {
-        if (reply && reply === token) { // headers中token，redis中token相同
-            // token 在redis中存在，更新过期时间
-            redisCli.expire(userInfo._id, REDIS.TOKEN_TIME, function (err, reply2) {
+    if (!user || user._id === null) { // undefined未登录，跳过
+        return next()
+    }
+    redisCli.get(user._id, (err, reply) => {
+        if (reply && reply === token) { // headers 和 redis中token 相同
+            // redis中存在token，更新过期时间
+            redisCli.expire(user._id, REDIS.TOKEN_TIME, function (err, reply2) {
                 if (err) return false
                 next()
             })
-        } else if (reply && reply !== token) { // headers中token，redis中token不同
+        } else if (reply && reply !== token) { // headers 和 redis中token 不同
             return res.status(200).json({
                 code: CODE.LOGIN_ERR,
                 msg: 'Login in other places, please login again ...'
@@ -88,6 +82,5 @@ module.exports = {
     jwtEncrypt,
     jwtDecrypt,
     getToken,
-    getUserInfo,
     refreshToken
 }

@@ -6,9 +6,8 @@ const { CODE } = require('../config/config')
 
 // 添加文章
 router.post('/add', async (req, res, next) => {
-  let body = req.body
   try {
-    const r = await new Article(body).save()
+    const r = await new Article(req.body).save()
 
     res.status(200).json({
       code: CODE.OK,
@@ -21,50 +20,40 @@ router.post('/add', async (req, res, next) => {
 });
 
 // 查找文章列表
-router.post('/', async (req, res, next) => {
-  const body = req.body
+router.get('/list', async (req, res, next) => {
+  const { title = '', category = null, state, pageNum = 1, pageSize = 10, sortBy = 'createTime', descending = -1 } = req.query
   try {
-    // 标题 模糊查询
-    let title = body.title || ''
-    let filter = {} // 定义查询条件
+    // 查询条件
+    let filter = {}
     title && (filter.title = { $regex: new RegExp(title, 'i') })
-    // 返回的字段
+    category && (filter.category = category)
+    state && (filter.state = state)
     let select = {
-      _id: 1,
-      title: 1,
-      author: 1,
-      type: 1,
-      tags: 1,
-      category: 1,
-      likes: 1,
-      meta: 1,
-      createTime: 1,
     }
     // 总数
     const total = await Article.countDocuments(filter)
     // 分页逻辑
-    let pageNum = parseInt(body.pageNum) || 1 // 页码
-    let limit = body.pageSize === 0 ? total : parseInt(body.pageSize) || 10 // 每页条数 (0 获取所有)
-    let skip = (pageNum - 1) * limit // 跳过多少条
-    let sort = {} // 排序
-    sort[body.sortBy || 'createTime'] = body.descending ? 1 : -1
-
+    let limit = pageSize === 0 ? total : parseInt(pageSize)
+    let skip = (pageNum - 1) * limit
+    let sort = {}
+    sort[sortBy] = parseInt(descending)
 
     const r = await Article.find(filter)
-      .select(select) // 过滤展示字段
-      .sort(sort) // 排序
-      .skip(skip) // 跳过多少条
-      .limit(limit) // 每页多少条
+      .select(select)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
       .populate(['tags', 'category', { path: 'author', select: { password: 0 } }]) // 连表查询
 
     return res.status(200).json({
       code: CODE.OK,
       data: r,
       msg: '文章列表获取成功',
-      pageNum: pageNum,
+      pageNum: pageNum - 0, // 转为数字类型
       pageSize: limit,
-      sortBy: body.sortBy,
-      total: total,
+      sortBy: sortBy,
+      sort: descending - 0,
+      total: total
     })
   } catch (err) {
     next(err)
@@ -72,30 +61,35 @@ router.post('/', async (req, res, next) => {
 });
 
 // 根据_id 查找单个文章
-router.get('/:_id/:_uid', async (req, res, next) => {
+router.get('/:_id', async (req, res, next) => {
+  const { admin = '' } = req.headers; // 后台浏览，不加浏览量
+  const { view } = req.query
+  const { _id } = req.params
   try {
     // 返回的字段
     let project = {
-      _id: 1,
-      title: 1,
-      author: 1,
-      mdContent: 1,
-      htmlContent: 1,
-      type: 1,
-      tags: 1,
-      likes: 1,
-      isLike: 1,
-      createTime: 1,
     }
 
-    let r = await Article.findById(req.params._id)
-      .select(project) // 过滤展示字段
-      .populate(["tags"])
+    // 修改文章阅读量
+    if (!admin && view === 'false') {
+      await Article.findByIdAndUpdate(_id, {
+        $inc: { 'meta.views': 1 } // 阅读量 +1
+      }, { new: true })
+    }
 
-    // 查看用户是否点赞该文章
-    const like = await Article.find({ _id: r._id, likes: req.params._uid })
+    let r = await Article.findById(_id)
+      .select(project) // 过滤展示字段
+      .populate(["tags", "category"])
+
     r = r.toObject() // doc.toObject() 后再添加属性，因为mongoose定义了自己的toJson，如不转换则新增的属性都不在toJson方法里
-    r.isLike = like.length > 0
+
+    const user = req.user
+    if (user._id) { // 如果不是null，证明登录过
+      // 查看用户是否点赞该文章
+      r.isLike = r.likes.some(val => val == user._id)
+    } else {
+      r.isLike = false
+    }
 
     return res.status(200).json({
       code: CODE.OK,
@@ -139,14 +133,21 @@ router.put('/:_id', async (req, res, next) => {
 // 文章点赞
 router.post('/like', async (req, res, next) => {
   try {
+    const user = req.user
+    if (!user._id) {
+      return res.status(200).json({
+        code: CODE.NOT_LOGIN,
+        msg: '请先登录'
+      })
+    }
+
     const r = await Article.findByIdAndUpdate(req.body.articleId, {
-      $addToSet: { likes: req.body.userId }, // 保存点赞用户_id
+      $addToSet: { likes: user._id }, // 保存点赞用户_id
       $inc: { 'meta.likes': 1 } // 点赞数 +1
-    }, { new: true })
+    })
 
     return res.status(200).json({
       code: CODE.OK,
-      data: r,
       msg: '点赞成功'
     })
   } catch (err) {
@@ -157,8 +158,16 @@ router.post('/like', async (req, res, next) => {
 // 取消点赞
 router.post('/nolike', async (req, res, next) => {
   try {
+    const user = req.user
+    if (!user._id) {
+      return res.status(200).json({
+        code: CODE.NOT_LOGIN,
+        msg: '请先登录'
+      })
+    }
+
     const r = await Article.findByIdAndUpdate(req.body.articleId, {
-      $pull: { likes: req.body.userId },
+      $pull: { likes: user._id },
       $inc: { 'meta.likes': -1 }
     }, { new: true })
 
@@ -172,5 +181,55 @@ router.post('/nolike', async (req, res, next) => {
   }
 });
 
+// 文章总数、点赞总数
+router.post('/count', async (req, res, next) => {
+  try {
+    // 文章总数
+    const total = await Article.countDocuments()
+    // 其他统计
+    const meta = await Article.aggregate([{ $group: { _id: null, views: { $sum: "$meta.views" }, likes: { $sum: "$meta.likes" }, comments: { $sum: "$meta.comments" } } }])
+    console.log(meta);
+    const category = await Article.aggregate([
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 },
+        }
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "_id",
+          foreignField: "_id",
+          as: "articles"
+        },
+      },
+      {
+        $addFields: { // 将数组转对象
+          "name": {
+            $first: "$articles.name"
+          }
+        }
+      },
+      {
+        $project: {
+          articles: 0,
+        },
+      },
+    ])
+    console.log(category);
+    if (meta.length > 0) {
+      delete meta[0]._id
+    }
+
+    return res.status(200).json({
+      code: CODE.OK,
+      data: { total, ...meta[0], category },
+      msg: '站点信息统计获取成功'
+    })
+  } catch (err) {
+    next(err)
+  }
+});
 
 module.exports = router;

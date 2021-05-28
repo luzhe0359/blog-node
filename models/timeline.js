@@ -1,32 +1,28 @@
 /**
- * Image model module.
- * @file 图片数据模型
- * @module model/image
+ * Timeline model module.
+ * @Timeline 文章数据模型
+ * @module model/Timeline
  * @author lzzz
  */
 const autoIncrement = require('mongoose-auto-increment');
 const { mongoose } = require('../middleware/mongoose')
 const Schema = mongoose.Schema;
 
-const FileSchema = new Schema({
-    // 上传名称
-    name: { type: String, require: true },
+const TimelineSchema = new Schema({
+    // 标题
+    title: { type: String, require: true, validate: /\S+/ },
 
-    // 路径
-    url: { type: String, require: true },
+    // 内容
+    body: { type: String, require: true },
 
-    // 大小
-    size: { type: String, require: true },
+    // 是否完成
+    finish: { type: Boolean, require: true, default: false },
 
-    // 类型
-    type: { type: String },
-
-    // 相册
-    album: { type: Schema.Types.ObjectId, ref: 'Album' },
+    // 计划完成时间
+    date: { type: String },
 
     // 创建时间
     createTime: { type: Number, default: Date.now },
-
     // 修改时间
     updateTime: { type: Number, default: Date.now }
 }, {
@@ -35,12 +31,12 @@ const FileSchema = new Schema({
 
 // 自增ID插件配置
 autoIncrement.initialize(mongoose.connection)
-FileSchema.plugin(autoIncrement.plugin, {
-    model: 'File',
+TimelineSchema.plugin(autoIncrement.plugin, {
+    model: 'Timeline',
     field: 'id',
     startAt: 1,
     incrementBy: 1
 })
 
 // 4.将文档结构发布为模型
-module.exports = mongoose.model('File', FileSchema);
+module.exports = mongoose.model('Timeline', TimelineSchema);
