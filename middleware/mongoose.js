@@ -5,7 +5,7 @@ const { DB_URL } = require('../config/config')
 // 去除弃用警告
 mongoose.set('useFindAndModify', false)
 
-// mongoose Promise
+// mongoose Promise 风格
 mongoose.Promise = global.Promise
 
 // 连接数据库

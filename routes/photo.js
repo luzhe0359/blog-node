@@ -28,13 +28,6 @@ const uploader = multer({ storage: storage })
  */
 
 router.post('/upload', uploader.single('photo'), async (req, res, next) => {
-    // if (!req.query.albumId) {
-    //     res.status(200).json({
-    //         code: CODE.ERROR,
-    //         msg: '请先选择相册'
-    //     })
-    // }
-
     const file = req.file
     try {
         // 保存到数据库

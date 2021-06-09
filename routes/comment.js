@@ -46,14 +46,20 @@ router.post('/add', async (req, res, next) => {
 });
 
 // 查找评论列表
-router.get('/', async (req, res, next) => {
-  const { state, content, articleId, pageNum = 1, pageSize = 10, sortBy = 'createTime', descending = 1 } = req.query
+router.get('/list', async (req, res, next) => {
+  const { state, content, articleId, pageNum = 1, pageSize = 0, sortBy = 'createTime', descending = -1 } = req.query
   try {
     // 查询条件
     let filter = {}
     content && (filter.content = { $regex: new RegExp(content, 'i') })
     articleId && (filter.articleId = articleId)
-    state === -1 && (filter.state = { $ne: -1 }) // -1 不返回未通过的评论, 第三者恢复，暂不过滤，由前端过滤
+    state == -1 && (filter.state = { $ne: -1 }) // -1 不返回未通过的评论, 第三者恢复，暂不过滤，由前端过滤
+    // state == -1 && (filter.otherComments = { state: { $ne: -1 } }) // -1 不返回未通过的评论, 第三者恢复，暂不过滤，由前端过滤
+
+    // let filter = {
+    //   articleId,
+    //   'otherComments.state': { $ne: -1 }
+    // }
     let select = {
     }
 
@@ -83,6 +89,7 @@ router.get('/', async (req, res, next) => {
       msg: '评论列表获取成功',
       pageNum: pageNum - 0,
       pageSize: limit,
+      pageCount: Math.ceil(total / limit),
       sortBy: sortBy,
       sort: descending - 0,
       total: total
@@ -95,7 +102,7 @@ router.get('/', async (req, res, next) => {
 // 根据_id 删除单个评论
 router.delete('/:_id', async (req, res, next) => {
   try {
-    const r = await Comment.findByIdAndDelete(req.params._id)
+    await Comment.findByIdAndDelete(req.params._id)
 
     return res.status(200).json({
       code: CODE.OK,
@@ -126,7 +133,6 @@ router.post('/like', async (req, res, next) => {
       r = await Comment.findOneAndUpdate({ _id: commentId, otherComments: { $elemMatch: { _id: otherCommentId } } }, update, { new: true })
     } else { // 父评论
       const likeResult = await Comment.findOne({ _id: commentId, likes: { $in: [userId] } })
-      console.log(likeResult);
       isLike = !!likeResult
       const update = isLike ? { $pull: { likes: userId } } : { $addToSet: { likes: userId } }
       r = await Comment.findByIdAndUpdate(commentId, update, { new: true })
@@ -134,7 +140,7 @@ router.post('/like', async (req, res, next) => {
     res.status(200).json({
       code: CODE.OK,
       data: r,
-      msg: isLike ? '取消成功' : '点赞成功'
+      msg: isLike ? '取消点赞' : '点赞成功'
     })
   } catch (err) {
     next(err)

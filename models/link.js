@@ -9,7 +9,7 @@ const { mongoose } = require('../middleware/mongoose')
 const Schema = mongoose.Schema;
 
 const LinkSchema = new Schema({
-    // 标题
+    // 网站名称
     title: { type: String, require: true, validate: /\S+/ },
 
     // 简介

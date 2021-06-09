@@ -13,6 +13,7 @@ const { set, remove } = require('../middleware/redis');
 
 // 用户登录
 router.post('/login', async (req, res, next) => {
+  const { admin = '' } = req.headers;
   let body = req.body
   try {
     // 获取初始密码
@@ -28,7 +29,8 @@ router.post('/login', async (req, res, next) => {
         msg: '用户名或密码错误!'
       })
     }
-    if (!user.role.includes('admin')) {
+
+    if (admin && !user.role.includes('admin')) {
       return res.status(200).json({
         code: CODE.ROLE_ERR,
         msg: '权限不足，请联系管理员!'
@@ -104,7 +106,11 @@ router.post('/add', async (req, res, next) => {
 });
 
 // 查找用户列表
-router.get('/list', async (req, res, next) => {
+router.get('/list', (req, res, next) => {
+  console.log(req.user.role);
+  next();
+  // return res.status(200).json()
+}, async (req, res, next) => {
   const { username = '', nickname = '', pageNum = 1, pageSize = 10, sortBy = 'createTime', descending = 1 } = req.query
   try {
     // 查询条件

@@ -2,7 +2,9 @@ const express = require('express');
 const router = express.Router();
 
 const Article = require('../models/article')
+const User = require('../models/user')
 const { CODE } = require('../config/config')
+const { set, remove, sadd, sismember, get } = require('../middleware/redis');
 
 // 添加文章
 router.post('/add', async (req, res, next) => {
@@ -51,6 +53,7 @@ router.get('/list', async (req, res, next) => {
       msg: '文章列表获取成功',
       pageNum: pageNum - 0, // 转为数字类型
       pageSize: limit,
+      pageCount: Math.ceil(total / limit),
       sortBy: sortBy,
       sort: descending - 0,
       total: total
@@ -62,39 +65,35 @@ router.get('/list', async (req, res, next) => {
 
 // 根据_id 查找单个文章
 router.get('/:_id', async (req, res, next) => {
-  const { admin = '' } = req.headers; // 后台浏览，不加浏览量
-  const { view } = req.query
   const { _id } = req.params
+  let viewKey = req.ip + '-' + _id
+
   try {
     // 返回的字段
     let project = {
     }
 
     // 修改文章阅读量
-    if (!admin && view === 'false') {
-      await Article.findByIdAndUpdate(_id, {
-        $inc: { 'meta.views': 1 } // 阅读量 +1
-      }, { new: true })
-    }
+    // 查找redis记录
+    get(viewKey).then(async val => {
+      // 未预览
+      if (!val) {
+        await Article.findByIdAndUpdate(_id, {
+          $inc: { 'meta.views': 1 } // 阅读量 +1
+        })
+      }
+      // 已预览(60分钟内看过，则刷新时间)
+      set(viewKey, _id, 3600)
 
-    let r = await Article.findById(_id)
-      .select(project) // 过滤展示字段
-      .populate(["tags", "category"])
+      let r = await Article.findById(_id)
+        .select(project)
+        .populate(["tags", "category"])
 
-    r = r.toObject() // doc.toObject() 后再添加属性，因为mongoose定义了自己的toJson，如不转换则新增的属性都不在toJson方法里
-
-    const user = req.user
-    if (user._id) { // 如果不是null，证明登录过
-      // 查看用户是否点赞该文章
-      r.isLike = r.likes.some(val => val == user._id)
-    } else {
-      r.isLike = false
-    }
-
-    return res.status(200).json({
-      code: CODE.OK,
-      data: r,
-      msg: '文章信息获取成功'
+      return res.status(200).json({
+        code: CODE.OK,
+        data: r,
+        msg: '文章信息获取成功'
+      })
     })
   } catch (err) {
     next(err)
@@ -134,6 +133,7 @@ router.put('/:_id', async (req, res, next) => {
 router.post('/like', async (req, res, next) => {
   try {
     const user = req.user
+
     if (!user._id) {
       return res.status(200).json({
         code: CODE.NOT_LOGIN,
@@ -141,13 +141,18 @@ router.post('/like', async (req, res, next) => {
       })
     }
 
-    const r = await Article.findByIdAndUpdate(req.body.articleId, {
+    await Article.findByIdAndUpdate(req.body.articleId, {
       $addToSet: { likes: user._id }, // 保存点赞用户_id
       $inc: { 'meta.likes': 1 } // 点赞数 +1
     })
+    const u = await User.findByIdAndUpdate(user._id, {
+      $addToSet: { likeArticles: req.body.articleId },
+    }, { new: true })
+      .select({ password: 0 })
 
     return res.status(200).json({
       code: CODE.OK,
+      data: u,
       msg: '点赞成功'
     })
   } catch (err) {
@@ -188,7 +193,7 @@ router.post('/count', async (req, res, next) => {
     const total = await Article.countDocuments()
     // 其他统计
     const meta = await Article.aggregate([{ $group: { _id: null, views: { $sum: "$meta.views" }, likes: { $sum: "$meta.likes" }, comments: { $sum: "$meta.comments" } } }])
-    console.log(meta);
+    // console.log(meta);
     const category = await Article.aggregate([
       {
         $group: {
@@ -217,7 +222,7 @@ router.post('/count', async (req, res, next) => {
         },
       },
     ])
-    console.log(category);
+    // console.log(category);
     if (meta.length > 0) {
       delete meta[0]._id
     }

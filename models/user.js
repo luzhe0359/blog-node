@@ -44,6 +44,9 @@ const userSchema = new Schema({
     // 权限 | 0:没有权限限制 | 1:不可以评论 | 2:不可以登录
     status: { type: Number, enum: [0, 1, 2], default: 0 },
 
+    // 点赞的文章
+    likeArticles: [{ type: Schema.Types.ObjectId, ref: 'Article', required: true }],
+
     // 创建时间
     createTime: { type: Number, default: Date.now },
 

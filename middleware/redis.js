@@ -1,10 +1,16 @@
 
 const redis = require('redis')
 const chalk = require('chalk')
+const { promisify } = require("util");
 const { REDIS } = require('../config/config')
 
 
-//  创建连接  第一个参数是端口  第二个参数 主机
+//  创建连接  第一个参数是 第二个参数 
+/**
+ * 创建redis连接
+ * @param {String} PORT 端口
+ * @param {String} HOST 主机
+ */
 const redisCli = redis.createClient(REDIS.PORT, REDIS.HOST)
 
 // 监听 connect
@@ -25,17 +31,15 @@ redisCli.on('error', err => {
  * @param {String} key 用户_id
  * @param {String} val 加密后的token
  */
-function set (key, val) {
+function set (key, val, time) {
     redisCli.set(key, val, (err, reply) => {
-        if (err) {
-            throw new Error(err)
-        }
         try {
-            reply &&
+            if (!err && reply) {
                 // 设置过期时间(单位：秒)
                 redisCli.expire(key, REDIS.TOKEN_TIME, (err, reply) => {
-                    console.log(chalk.green('保存token', key, REDIS.TOKEN_TIME, val))
+                    console.log(chalk.green('保存', key, time || REDIS.TOKEN_TIME, val))
                 })
+            }
         } catch (error) {
             throw new Error(error)
         }
@@ -43,11 +47,12 @@ function set (key, val) {
 }
 
 /**
- * 获取 redis
- * @param {String} key 用户_id
+ * 判断是否存在 redis
+ * @param {String} key redis的key
  */
 function get (key) {
-    return redisCli.get(key)
+    const getAsync = promisify(redisCli.get).bind(redisCli);
+    return getAsync(key)
 }
 
 /**

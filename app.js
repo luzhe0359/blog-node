@@ -1,6 +1,8 @@
 const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
+const compression = require('compression')
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const bodyParser = require('body-parser');
@@ -13,20 +15,11 @@ const { refreshToken } = require('./middleware/jwt');
 // config
 const { CRYPTO_KEY, CODE, ROUTE_WHITE_LIST, CORS_WHITE_LIST } = require('./config/config')
 
-// 路由
-const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/user');
-const articleRouter = require('./routes/article');
-const categoryRouter = require('./routes/category');
-const albumRouter = require('./routes/album');
-const tagRouter = require('./routes/tag');
-const commentRouter = require('./routes/comment');
-const uploadRouter = require('./routes/photo');
-const timelineRouter = require('./routes/timeline');
-const linkRouter = require('./routes/link');
-
 const app = express();
-// 利用正则来匹配对应地址，打开对应的index页面，这样就可以解决刷新出现404问题，同时实现多个vue项目打包在一起
+// 启用gzip
+app.use(compression())
+
+// 利用正则来匹配地址，打开对应的index页面，同时实现部署多个vue项目
 app.use(history(
   {
     rewrites: [{ from: /^\/zugelu/, to: '/zugelu/index.html' },],
@@ -42,24 +35,40 @@ app.use(history(
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-app.use(logger('dev'));
+// process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+//获取执行方式并判断使用哪种方法输出信息
+const ENV = process.env.NODE_ENV;
+// console.log(process.env);
+//ENV != production------>代表不是线上环境
+if (ENV != 'production') {
+  // console.log(ENV);
+  app.use(logger('dev')); //开发环境用默认得输出流就行了
+} else {
+  //写入对应的日志文件
+  const logFileName = path.join(__dirname, 'log', 'access.log');
+  // console.log(logFileName);
+  //创建写入流
+  const writeStream = fs.createWriteStream(logFileName, {
+    flags: 'a' //追加
+  });
+  //把输出流改成我们得写入流；就可以写入文件了
+  app.use(logger('combined', {
+    stream: writeStream
+  }));
+}
+// app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ limit: '20mb', extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', express.static(path.join(__dirname, 'dist')));
-app.use('/zugelu', express.static(path.join(__dirname, 'zugelu'))); // 后台管理端
+app.use('/zugelu', express.static(path.join(__dirname, 'zugelu'))); // 后台管理
 app.use(cookieParser());
 
 // 配置body-parser,只要加入这个配置，则在req请求对象上会多出来一个属性：body
-// parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ limit: '20mb', extended: false }))
+// parse application/x-www-form-urlencoded 
+app.use(bodyParser.urlencoded({ extended: false })) //extended:false 不使用第三方模块处理参数，使用Nodejs内置模块querystring处理
 // parse application/json
-app.use(bodyParser.json({ limit: '20mb' }))
-
-// app.all('*', function (req, res, next) {
-//   res.header("Access-Control-Allow-Origin", "*");
-//   next();
-// });
+app.use(bodyParser.json())
 
 // cors 跨域解决
 app.use(
@@ -84,17 +93,8 @@ app.use(expressJWT({
 // 每一次请求都刷新token的过期时间
 app.use(refreshToken)
 
-
-app.use('/', indexRouter);
-app.use('/user', usersRouter);
-app.use('/photo', uploadRouter);
-app.use('/article', articleRouter);
-app.use('/comment', commentRouter);
-app.use('/timeline', timelineRouter);
-app.use('/link', linkRouter);
-app.use('/category', categoryRouter);
-app.use('/album', albumRouter);
-app.use('/tag', tagRouter);
+// 路由
+require('./routes')(app);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

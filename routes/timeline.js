@@ -49,6 +49,7 @@ router.get('/list', async (req, res, next) => {
       msg: '时间线列表获取成功',
       pageNum: pageNum - 0,
       pageSize: limit,
+      pageCount: Math.ceil(total / limit),
       sortBy: sortBy,
       sort: descending - 0,
       total: total
