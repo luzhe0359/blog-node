@@ -24,24 +24,20 @@ module.exports = {
         TOKEN_TIME: 259200 // 会话失效时间(单位：秒)3天/259200秒 100年/3153600000秒
     },
     ROUTE_WHITE_LIST: [ // 路由白名单, 除了这几个地址, 其他的URL都需要jwt验证
-        '/',
-        '/zugelu',
-        '/user/login',
-        // '/user/logout',
-        '/user/add',
-        { url: '/user', methods: ['GET'] }
+        '/api/',
+        '/api/user/login',
+        '/api/user/add',
     ],
     CORS_WHITE_LIST: [ // 跨域白名单
+        'http://127.0.0.1:8081',
+        'http://localhost:8081',
         'http://127.0.0.1:8080',
         'http://localhost:8080',
-        'http://127.0.0.1:8082',
-        'http://localhost:8082',
-        'http://localhost:8081',
-        'http://localhost:3001',
-        'http://localhost:3000',
         'http://127.0.0.1:3001',
+        'http://localhost:3001',
         'http://127.0.0.1:3000',
-        'http://192.168.0.107:3003',
-        'http://192.168.0.107:3000',
+        'http://localhost:3000',
+        'https://www.zugelu.com',
+        'https://zugelu.com',
     ]
 }

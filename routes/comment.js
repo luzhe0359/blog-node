@@ -45,6 +45,7 @@ router.post('/add', async (req, res, next) => {
   }
 });
 
+
 // 查找评论列表
 router.get('/list', async (req, res, next) => {
   const { state, content, articleId, pageNum = 1, pageSize = 0, sortBy = 'createTime', descending = -1 } = req.query
@@ -53,13 +54,7 @@ router.get('/list', async (req, res, next) => {
     let filter = {}
     content && (filter.content = { $regex: new RegExp(content, 'i') })
     articleId && (filter.articleId = articleId)
-    state == -1 && (filter.state = { $ne: -1 }) // -1 不返回未通过的评论, 第三者恢复，暂不过滤，由前端过滤
-    // state == -1 && (filter.otherComments = { state: { $ne: -1 } }) // -1 不返回未通过的评论, 第三者恢复，暂不过滤，由前端过滤
 
-    // let filter = {
-    //   articleId,
-    //   'otherComments.state': { $ne: -1 }
-    // }
     let select = {
     }
 
@@ -71,7 +66,7 @@ router.get('/list', async (req, res, next) => {
     let sort = {}
     sort[sortBy] = parseInt(descending)
 
-    const r = await Comment.find(filter)
+    let r = await Comment.find(filter)
       .select(select)
       .sort(sort)
       .skip(skip)
@@ -82,6 +77,14 @@ router.get('/list', async (req, res, next) => {
         { path: 'otherComments.from', select: "_id nickname avatar" },
         { path: 'otherComments.to', select: "_id nickname avatar" }
       ])
+
+    // 过滤非法 评论
+    if (state == -1) {
+      r = r.map(comment => {
+        comment.otherComments = comment.otherComments.filter(c => c.state !== -1)
+        return comment
+      })
+    }
 
     return res.status(200).json({
       code: CODE.OK,

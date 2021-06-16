@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const Article = require('../models/article')
+const Comment = require('../models/comment')
 const User = require('../models/user')
 const { CODE } = require('../config/config')
 const { set, remove, sadd, sismember, get } = require('../middleware/redis');
@@ -81,9 +82,9 @@ router.get('/:_id', async (req, res, next) => {
         await Article.findByIdAndUpdate(_id, {
           $inc: { 'meta.views': 1 } // 阅读量 +1
         })
+        // 一小时后清除
+        set(viewKey, _id, 3600)
       }
-      // 已预览(60分钟内看过，则刷新时间)
-      set(viewKey, _id, 3600)
 
       let r = await Article.findById(_id)
         .select(project)
@@ -104,6 +105,7 @@ router.get('/:_id', async (req, res, next) => {
 router.delete('/:_id', async (req, res, next) => {
   try {
     const r = await Article.findByIdAndDelete(req.params._id)
+    await Comment.deleteMany({ articleId: req.params._id })
 
     return res.status(200).json({
       code: CODE.OK,
@@ -193,7 +195,7 @@ router.post('/count', async (req, res, next) => {
     const total = await Article.countDocuments()
     // 其他统计
     const meta = await Article.aggregate([{ $group: { _id: null, views: { $sum: "$meta.views" }, likes: { $sum: "$meta.likes" }, comments: { $sum: "$meta.comments" } } }])
-    // console.log(meta);
+    // 分类统计
     const category = await Article.aggregate([
       {
         $group: {
@@ -219,17 +221,19 @@ router.post('/count', async (req, res, next) => {
       {
         $project: {
           articles: 0,
+          _id: 0
         },
       },
     ])
-    // console.log(category);
+
+
     if (meta.length > 0) {
       delete meta[0]._id
     }
 
     return res.status(200).json({
       code: CODE.OK,
-      data: { total, ...meta[0], category },
+      data: { total, ...meta[0], category, },
       msg: '站点信息统计获取成功'
     })
   } catch (err) {

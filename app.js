@@ -22,11 +22,11 @@ app.use(compression())
 // 利用正则来匹配地址，打开对应的index页面，同时实现部署多个vue项目
 app.use(history(
   {
-    rewrites: [{ from: /^\/zugelu/, to: '/zugelu/index.html' },],
+    rewrites: [{ from: /^\/admin/, to: '/admin/index.html' },],
     htmlAcceptHeaders: ['text/html', 'application/xhtml+xml'],
   },
   {
-    rewrites: [{ from: /^\//, to: '/dist/index.html' },],
+    rewrites: [{ from: /^\//, to: '/dist/template.html' },],
     htmlAcceptHeaders: ['text/html', 'application/xhtml+xml'],
   },
 ));
@@ -61,7 +61,7 @@ app.use(express.json());
 app.use(express.urlencoded({ limit: '20mb', extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', express.static(path.join(__dirname, 'dist')));
-app.use('/zugelu', express.static(path.join(__dirname, 'zugelu'))); // 后台管理
+app.use('/admin', express.static(path.join(__dirname, 'admin'))); // 后台管理
 app.use(cookieParser());
 
 // 配置body-parser,只要加入这个配置，则在req请求对象上会多出来一个属性：body

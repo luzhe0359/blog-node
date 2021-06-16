@@ -107,7 +107,6 @@ router.post('/add', async (req, res, next) => {
 
 // 查找用户列表
 router.get('/list', (req, res, next) => {
-  console.log(req.user.role);
   next();
   // return res.status(200).json()
 }, async (req, res, next) => {
@@ -209,26 +208,6 @@ router.delete('/:_id', async (req, res, next) => {
     return res.status(200).json({
       code: CODE.OK,
       msg: '删除成功'
-    })
-  } catch (err) {
-    next(err)
-  }
-});
-
-// 查找账号是否注册
-router.get('/', async (req, res, next) => {
-  try {
-    const r = await User.findOne(req.query)
-    if (r) {
-      return res.status(200).json({
-        code: CODE.ACCOUNT_ERR,
-        msg: '账号已存在'
-      })
-    }
-
-    res.status(200).json({
-      code: CODE.OK,
-      msg: '账号尚未注册过'
     })
   } catch (err) {
     next(err)
