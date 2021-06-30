@@ -21,11 +21,12 @@ router.post('/add', async (req, res, next) => {
 
 // 查找友链列表
 router.get('/list', async (req, res, next) => {
-  const { title = '', pageNum = 1, pageSize = 10, sortBy = 'createTime', descending = 1 } = req.query
+  const { title = '', isStop, pageNum = 1, pageSize = 10, sortBy = 'createTime', descending = 1 } = req.query
   try {
     // 标题 模糊查询
     let filter = {} // 定义查询条件
     title && (filter.title = { $regex: new RegExp(title, 'i') })
+    isStop && (filter.isStop = isStop)
     // 返回的字段
     let select = {
     }
@@ -36,6 +37,7 @@ router.get('/list', async (req, res, next) => {
     let limit = pageSize === 0 ? total : parseInt(pageSize) // 每页条数 (0 获取所有)
     let skip = (pageNum - 1) * limit // 跳过多少条
     let sort = {} // 排序
+    console.log(sortBy);
     sort[sortBy] = parseInt(descending)
 
     const r = await Link.find(filter)

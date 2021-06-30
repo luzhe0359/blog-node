@@ -1,15 +1,14 @@
 /**
- * Image model module.
- * @file 图片数据模型
- * @module model/image
+ * Photo model module.
+ * @Photo 图片数据模型
+ * @module model/Photo
  * @author lzzz
  */
-const autoIncrement = require('mongoose-auto-increment');
 const { mongoose } = require('../middleware/mongoose')
 const Schema = mongoose.Schema;
 
-const FileSchema = new Schema({
-    // 上传名称
+const PhotoSchema = new Schema({
+    // 名称
     name: { type: String, require: true },
 
     // 路径
@@ -33,14 +32,4 @@ const FileSchema = new Schema({
     timestamps: { createdAt: 'createTime', updatedAt: 'updateTime' }
 });
 
-// 自增ID插件配置
-autoIncrement.initialize(mongoose.connection)
-FileSchema.plugin(autoIncrement.plugin, {
-    model: 'File',
-    field: 'id',
-    startAt: 1,
-    incrementBy: 1
-})
-
-// 4.将文档结构发布为模型
-module.exports = mongoose.model('File', FileSchema);
+module.exports = mongoose.model('Photo', PhotoSchema);

@@ -1,10 +1,9 @@
 /**
  * Timeline model module.
- * @Timeline 文章数据模型
+ * @Timeline 时间线数据模型
  * @module model/Timeline
  * @author lzzz
  */
-const autoIncrement = require('mongoose-auto-increment');
 const { mongoose } = require('../middleware/mongoose')
 const Schema = mongoose.Schema;
 
@@ -29,14 +28,4 @@ const TimelineSchema = new Schema({
     timestamps: { createdAt: 'createTime', updatedAt: 'updateTime' }
 });
 
-// 自增ID插件配置
-autoIncrement.initialize(mongoose.connection)
-TimelineSchema.plugin(autoIncrement.plugin, {
-    model: 'Timeline',
-    field: 'id',
-    startAt: 1,
-    incrementBy: 1
-})
-
-// 4.将文档结构发布为模型
 module.exports = mongoose.model('Timeline', TimelineSchema);

@@ -4,15 +4,14 @@
  * @module model/Album
  * @author lzzz
  */
-const autoIncrement = require('mongoose-auto-increment');
 const { mongoose } = require('../middleware/mongoose')
 const Schema = mongoose.Schema;
 
 const AlbumSchema = new Schema({
-    // 分类名称
+    // 名称
     name: { type: String, require: true, validate: /\S+/ },
 
-    // 分类描述
+    // 描述
     desc: String,
 
     // 创建时间
@@ -24,14 +23,4 @@ const AlbumSchema = new Schema({
     timestamps: { createdAt: 'createTime', updatedAt: 'updateTime' }
 });
 
-// 自增ID插件配置
-autoIncrement.initialize(mongoose.connection)
-AlbumSchema.plugin(autoIncrement.plugin, {
-    model: 'Album',
-    field: 'id',
-    startAt: 1,
-    incrementBy: 1
-})
-
-// 4.将文档结构发布为模型
 module.exports = mongoose.model('Album', AlbumSchema);

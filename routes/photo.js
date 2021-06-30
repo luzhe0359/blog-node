@@ -4,7 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-const File = require('../models/file')
+const Photo = require('../models/photo')
 const { CODE } = require('../config/config')
 
 var storage = multer.diskStorage({
@@ -31,7 +31,7 @@ router.post('/upload', uploader.single('photo'), async (req, res, next) => {
     const file = req.file
     try {
         // 保存到数据库
-        const r = await new File({
+        const r = await new Photo({
             name: file.originalname,
             url: '/images/' + file.filename,
             size: file.size,
@@ -65,7 +65,7 @@ router.post('/uploads', uploader.array('photo', 10), async (req, res, next) => {
                 album: req.query.albumId
             }
             // 保存到数据库
-            await new File(photo).save()
+            await new Photo(photo).save()
         }
         res.status(200).json({
             code: CODE.OK,
@@ -86,14 +86,14 @@ router.get('/list', async (req, res, next) => {
         }
 
         // 总数
-        const total = await File.countDocuments(filter)
+        const total = await Photo.countDocuments(filter)
         // 分页逻辑
         let limit = pageSize === 0 ? total : parseInt(pageSize)
         let skip = (pageNum - 1) * limit
         let sort = {}
         sort[sortBy] = parseInt(descending)
 
-        const r = await File.find(filter)
+        const r = await Photo.find(filter)
             .select(select)
             .sort(sort)
             .skip(skip)
@@ -118,9 +118,8 @@ router.get('/list', async (req, res, next) => {
 // 查找相册
 router.get('/album', async (req, res, next) => {
     const query = req.query
-    const { albumId } = query
     try {
-        const r = await File.aggregate([
+        const r = await Photo.aggregate([
             {
                 $group: {
                     _id: "$album", // 根据album_id 进行分组
@@ -163,7 +162,7 @@ router.get('/album', async (req, res, next) => {
             },
             {
                 $sort: {
-                    "album[0].createTime": -1
+                    "album.createTime": 1
                 }
             }
         ])
@@ -182,7 +181,7 @@ router.get('/album', async (req, res, next) => {
 router.delete('/:_id', async (req, res, next) => {
     try {
         // 删除本地图片
-        const { url } = await File.findById(req.params._id)
+        const { url } = await Photo.findById(req.params._id)
         const photoUrl = path.resolve(__dirname, '../public', '.' + url)
         // 检查头像是否存在
         fs.access(photoUrl, fs.constants.F_OK, (err) => {
@@ -193,7 +192,7 @@ router.delete('/:_id', async (req, res, next) => {
             }
         });
         // 删除数据库中图片
-        const r = await File.findByIdAndDelete(req.params._id)
+        const r = await Photo.findByIdAndDelete(req.params._id)
 
         return res.status(200).json({
             code: CODE.OK,

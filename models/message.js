@@ -1,39 +1,30 @@
 /**
- * Comment model module.
- * @Comment 评论数据模型
- * @module model/Comment
+ * Message model module.
+ * @Message 留言数据模型
+ * @module model/MessageSchema
  * @author lzzz
  */
 const { mongoose } = require('../middleware/mongoose')
 const Schema = mongoose.Schema;
 
-const CommentSchema = new Schema({
-    // 评论所在的文章 id
-    articleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Article', required: true },
-
-    // 谁在评论
+const MessageSchema = new Schema({
+    // 谁在留言
     from: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 
-    // 评论内容
+    // 留言内容
     content: { type: String, required: true, validate: /\S+/ },
 
     // 是否置顶
     isTop: { type: Boolean, default: false },
 
-    // 点赞的用户
-    likes: [{ type: Schema.Types.ObjectId, ref: 'User', required: true }],
-
-    // 第三者评论
+    // 第三者留言
     otherComments: [
         {
-            // 谁在评论
+            // 谁在留言
             from: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 
-            // 对谁评论
+            // 对谁留言
             to: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-
-            // 点赞的用户
-            likes: [{ type: Schema.Types.ObjectId, ref: 'User', required: true }],
 
             // content
             content: { type: String, required: true, validate: /\S+/ },
@@ -41,7 +32,7 @@ const CommentSchema = new Schema({
             // 状态 | 0:待审核 | 1:已通过 | -1:未通过
             state: { type: Number, default: 0 },
 
-            // 评论层级 | 2:1级评论的回复内容 | 3:2级评论的回复内容
+            // 留言层级 | 2:1级留言的回复内容 | 3:2级留言的回复内容
             level: { type: Number, default: 2 },
 
             // 创建时间
@@ -61,4 +52,4 @@ const CommentSchema = new Schema({
     timestamps: { createdAt: 'createTime', updatedAt: 'updateTime' }
 });
 
-module.exports = mongoose.model('Comment', CommentSchema);
+module.exports = mongoose.model('Message', MessageSchema);

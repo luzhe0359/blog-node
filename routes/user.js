@@ -29,8 +29,14 @@ router.post('/login', async (req, res, next) => {
         msg: '用户名或密码错误!'
       })
     }
-
-    if (admin && !user.role.includes('admin')) {
+    console.log(user.role);
+    if (admin && user.role === "blacklist") {
+      return res.status(200).json({
+        code: CODE.ROLE_ERR,
+        msg: '您已被列入黑名单，详情请联系管理员!'
+      })
+    }
+    if (admin && "super,admin,editor".indexOf(user.role) == -1) {
       return res.status(200).json({
         code: CODE.ROLE_ERR,
         msg: '权限不足，请联系管理员!'
@@ -80,14 +86,6 @@ router.post('/logout', async (req, res, next) => {
 router.post('/add', async (req, res, next) => {
   let body = req.body
   try {
-    const r = await User.findOne({ username: body.username })
-    if (r) {
-      return res.status(200).json({
-        code: CODE.ACCOUNT_ERR,
-        msg: '账号已存在'
-      })
-    }
-
     // 获取初始密码
     let encryptPassword = aesDecrypt(body.password)
     // 对初始密码、进行不可逆加密
@@ -104,6 +102,62 @@ router.post('/add', async (req, res, next) => {
     next(err)
   }
 });
+
+// 校验用户名
+router.post('/username', async (req, res, next) => {
+  let body = req.body
+  try {
+    // 判断是否登录
+    const user = req.user
+    console.log(user);
+    // if (!user._id) {
+    //   return res.status(200).json({
+    //     code: CODE.NOT_LOGIN,
+    //     msg: '请先登录'
+    //   })
+    // }
+    const u = await User.findOne({ username: body.username })
+    if (u) {
+      return res.status(200).json({
+        code: CODE.OK,
+        data: 'Username has been used',
+        msg: '账号已存在'
+      })
+    }
+
+    res.status(200).json({
+      code: CODE.OK,
+      data: '',
+      msg: '账号可以注册'
+    })
+  } catch (err) {
+    next(err)
+  }
+});
+
+// 校验昵称
+router.post('/nickname', async (req, res, next) => {
+  let body = req.body
+  try {
+    const u = await User.findOne({ nickname: body.nickname })
+    if (u) {
+      return res.status(200).json({
+        code: CODE.OK,
+        data: 'Username has been used',
+        msg: '昵称已存在'
+      })
+    }
+
+    res.status(200).json({
+      code: CODE.OK,
+      data: '',
+      msg: '昵称可以使用'
+    })
+  } catch (err) {
+    next(err)
+  }
+});
+
 
 // 查找用户列表
 router.get('/list', (req, res, next) => {

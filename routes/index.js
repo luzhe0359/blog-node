@@ -5,6 +5,7 @@ module.exports = function (app) {
     app.use('/api/category', require('./category'));
     app.use('/api/tag', require('./tag'));
     app.use('/api/comment', require('./comment'));
+    app.use('/api/message', require('./message'));
     app.use('/api/timeline', require('./timeline'));
     app.use('/api/link', require('./link'));
     app.use('/api/album', require('./album'));

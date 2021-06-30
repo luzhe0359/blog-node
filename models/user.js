@@ -4,8 +4,6 @@
  * @module model/user
  * @author lzzz
  */
-// 自增ID
-const autoIncrement = require('mongoose-auto-increment');
 // 1.引包
 const { mongoose } = require('../middleware/mongoose')
 
@@ -20,8 +18,8 @@ const userSchema = new Schema({
     // 密码 8-16位，aes加密
     password: { type: String, require: true },
 
-    // 角色 admin/editor
-    role: { type: Array, require: true, default: ['editor'] },
+    // 角色 | super | admin | editor | visitor | blacklist
+    role: { type: String, require: true, default: 'visitor' },
 
     // 昵称 2-6位
     nickname: { type: String, default: '暂无昵称' },
@@ -36,7 +34,7 @@ const userSchema = new Schema({
     gender: { type: Number, enum: [0, 1, -1], default: -1 },
 
     // 头像
-    avatar: { type: String, default: '/images/default_avatar.jpeg' },
+    avatar: { type: String, default: '/images/logo.webp' },
 
     // 个人简介
     about: { type: String, default: '这个人很懒，什么都没留下~' },
@@ -55,15 +53,6 @@ const userSchema = new Schema({
 }, {
     timestamps: { createdAt: 'createTime', updatedAt: 'updateTime' }
 });
-
-// 自增ID插件配置
-autoIncrement.initialize(mongoose.connection)
-userSchema.plugin(autoIncrement.plugin, {
-    model: 'User',
-    field: 'id',
-    startAt: 1,
-    incrementBy: 1
-})
 
 // 4.将文档结构发布为模型
 module.exports = mongoose.model('User', userSchema);

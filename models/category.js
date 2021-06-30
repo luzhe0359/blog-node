@@ -4,7 +4,6 @@
  * @module model/Category
  * @author lzzz
  */
-const autoIncrement = require('mongoose-auto-increment');
 const { mongoose } = require('../middleware/mongoose')
 const Schema = mongoose.Schema;
 
@@ -27,14 +26,4 @@ const CategorySchema = new Schema({
     timestamps: { createdAt: 'createTime', updatedAt: 'updateTime' }
 });
 
-// 自增ID插件配置
-autoIncrement.initialize(mongoose.connection)
-CategorySchema.plugin(autoIncrement.plugin, {
-    model: 'Category',
-    field: 'id',
-    startAt: 1,
-    incrementBy: 1
-})
-
-// 4.将文档结构发布为模型
 module.exports = mongoose.model('Category', CategorySchema);

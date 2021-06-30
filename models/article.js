@@ -4,7 +4,6 @@
  * @module model/Article
  * @author lzzz
  */
-const autoIncrement = require('mongoose-auto-increment');
 const { mongoose } = require('../middleware/mongoose')
 const Schema = mongoose.Schema;
 
@@ -15,16 +14,16 @@ const ArticleSchema = new Schema({
     // 作者
     author: { type: Schema.Types.ObjectId, ref: 'User' },   //作为外键
 
-    // 文章描述
+    // 描述
     desc: { type: String, require: true },
 
     // 类型
     type: { type: String, require: true },
 
-    // 文章内容 md
+    // 内容 md
     mdContent: { type: String, require: true },
 
-    // 文章内容 html
+    // 内容 html
     htmlContent: { type: String, require: true },
 
     // 字数
@@ -42,9 +41,6 @@ const ArticleSchema = new Schema({
     // 文章标签
     tags: [{ type: Schema.Types.ObjectId, ref: 'Tag', required: true }],
 
-    // 评论
-    comments: [{ type: Schema.Types.ObjectId, ref: 'Comment', required: true }],
-
     // 文章分类
     category: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
 
@@ -60,20 +56,11 @@ const ArticleSchema = new Schema({
 
     // 创建时间
     createTime: { type: Number, default: Date.now },
+
     // 修改时间
     updateTime: { type: Number, default: Date.now }
 }, {
     timestamps: { createdAt: 'createTime', updatedAt: 'updateTime' }
 });
 
-// 自增ID插件配置
-autoIncrement.initialize(mongoose.connection)
-ArticleSchema.plugin(autoIncrement.plugin, {
-    model: 'Article',
-    field: 'id',
-    startAt: 1,
-    incrementBy: 1
-})
-
-// 4.将文档结构发布为模型
 module.exports = mongoose.model('Article', ArticleSchema);

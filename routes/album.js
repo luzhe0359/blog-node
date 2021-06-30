@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 
 const Album = require('../models/album')
-const File = require('../models/file')
+const Photo = require('../models/photo')
 const { CODE } = require('../config/config')
 
 // 添加相册
@@ -88,7 +88,7 @@ router.put('/:_id', async (req, res, next) => {
 router.delete('/:_id', async (req, res, next) => {
   try {
     // 删除本地图片
-    let photos = await File.find({ album: req.params._id })
+    let photos = await Photo.find({ album: req.params._id })
     photos.forEach(photo => {
       const photoUrl = path.resolve(__dirname, '../public', '.' + photo.url)
       // 判断文件的状态，是否存在
@@ -101,7 +101,7 @@ router.delete('/:_id', async (req, res, next) => {
     })
 
     // 删除图片
-    await File.deleteMany({ album: req.params._id })
+    await Photo.deleteMany({ album: req.params._id })
     // 删除相册
     await Album.findByIdAndDelete(req.params._id)
 

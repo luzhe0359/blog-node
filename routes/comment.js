@@ -5,47 +5,6 @@ const Comment = require('../models/comment')
 const Article = require('../models/article')
 const { CODE } = require('../config/config')
 
-// 添加评论
-router.post('/add', async (req, res, next) => {
-  const { articleId, commentId, to, content, level } = req.body
-
-  try {
-    // 判断是否登录
-    const user = req.user
-    if (!user._id) {
-      return res.status(200).json({
-        code: CODE.NOT_LOGIN,
-        msg: '请先登录'
-      })
-    }
-
-    if (level) { // 子评论
-      await Comment.findByIdAndUpdate(commentId, {
-        $addToSet: {
-          otherComments: {
-            from: user._id,
-            to: to,
-            content: content,
-            level: level
-          }
-        }
-      }, { new: true })
-    } else { // 父评论
-      await new Comment({ articleId, content, from: user._id }).save()
-    }
-
-    await Article.findByIdAndUpdate(articleId, { $inc: { 'meta.comments': 1 } })// 评论数 +1
-
-    res.status(200).json({
-      code: CODE.OK,
-      msg: '添加成功'
-    })
-  } catch (err) {
-    next(err)
-  }
-});
-
-
 // 查找评论列表
 router.get('/list', async (req, res, next) => {
   const { state, content, articleId, pageNum = 1, pageSize = 0, sortBy = 'createTime', descending = -1 } = req.query
@@ -54,6 +13,9 @@ router.get('/list', async (req, res, next) => {
     let filter = {}
     content && (filter.content = { $regex: new RegExp(content, 'i') })
     articleId && (filter.articleId = articleId)
+    if (state == -1) {
+      filter.state = { $nin: [-1] }
+    }
 
     let select = {
     }
@@ -101,6 +63,47 @@ router.get('/list', async (req, res, next) => {
     next(err)
   }
 });
+
+// 添加评论
+router.post('/add', async (req, res, next) => {
+  const { articleId, commentId, to, content, level } = req.body
+
+  try {
+    // 判断是否登录
+    const user = req.user
+    if (!user._id) {
+      return res.status(200).json({
+        code: CODE.NOT_LOGIN,
+        msg: '请先登录'
+      })
+    }
+
+    if (level) { // 子评论
+      await Comment.findByIdAndUpdate(commentId, {
+        $addToSet: {
+          otherComments: {
+            from: user._id,
+            to: to,
+            content: content,
+            level: level
+          }
+        }
+      }, { new: true })
+    } else { // 父评论
+      await new Comment({ articleId, content, from: user._id }).save()
+    }
+
+    await Article.findByIdAndUpdate(articleId, { $inc: { 'meta.comments': 1 } })// 评论数 +1
+
+    res.status(200).json({
+      code: CODE.OK,
+      msg: '添加成功'
+    })
+  } catch (err) {
+    next(err)
+  }
+});
+
 
 // 根据_id 删除单个评论
 router.delete('/:_id', async (req, res, next) => {

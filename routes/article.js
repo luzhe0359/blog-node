@@ -7,20 +7,7 @@ const User = require('../models/user')
 const { CODE } = require('../config/config')
 const { set, remove, sadd, sismember, get } = require('../middleware/redis');
 
-// 添加文章
-router.post('/add', async (req, res, next) => {
-  try {
-    const r = await new Article(req.body).save()
 
-    res.status(200).json({
-      code: CODE.OK,
-      data: r,
-      msg: '添加成功'
-    })
-  } catch (err) {
-    next(err)
-  }
-});
 
 // 查找文章列表
 router.get('/list', async (req, res, next) => {
@@ -58,6 +45,21 @@ router.get('/list', async (req, res, next) => {
       sortBy: sortBy,
       sort: descending - 0,
       total: total
+    })
+  } catch (err) {
+    next(err)
+  }
+});
+
+// 添加文章
+router.post('/add', async (req, res, next) => {
+  try {
+    const r = await new Article(req.body).save()
+
+    res.status(200).json({
+      code: CODE.OK,
+      data: r,
+      msg: '添加成功'
     })
   } catch (err) {
     next(err)
