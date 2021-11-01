@@ -5,18 +5,19 @@ const Article = require('../models/article')
 const Comment = require('../models/comment')
 const User = require('../models/user')
 const { CODE } = require('../config/config')
-const { set, remove, sadd, sismember, get } = require('../middleware/redis');
+const { set, get } = require('../middleware/redis');
 
 
 
 // 查找文章列表
 router.get('/list', async (req, res, next) => {
-  const { title = '', category = null, state, pageNum = 1, pageSize = 10, sortBy = 'createTime', descending = -1 } = req.query
+  const { title = '', category = null, tag = null, state, pageNum = 1, pageSize = 10, sortBy = 'createTime', descending = -1 } = req.query
   try {
     // 查询条件
     let filter = {}
     title && (filter.title = { $regex: new RegExp(title, 'i') })
     category && (filter.category = category)
+    tag && (filter.tags = { $in: [tag] })
     state && (filter.state = state)
     let select = {
     }
@@ -35,6 +36,7 @@ router.get('/list', async (req, res, next) => {
       .limit(limit)
       .populate(['tags', 'category', { path: 'author', select: { password: 0 } }]) // 连表查询
 
+
     return res.status(200).json({
       code: CODE.OK,
       data: r,
@@ -44,7 +46,7 @@ router.get('/list', async (req, res, next) => {
       pageCount: Math.ceil(total / limit),
       sortBy: sortBy,
       sort: descending - 0,
-      total: total
+      total
     })
   } catch (err) {
     next(err)
@@ -198,7 +200,7 @@ router.post('/count', async (req, res, next) => {
     // 其他统计
     const meta = await Article.aggregate([{ $group: { _id: null, views: { $sum: "$meta.views" }, likes: { $sum: "$meta.likes" }, comments: { $sum: "$meta.comments" } } }])
     // 分类统计
-    const category = await Article.aggregate([
+    const categorys = await Article.aggregate([
       {
         $group: {
           _id: '$category',
@@ -228,14 +230,13 @@ router.post('/count', async (req, res, next) => {
       },
     ])
 
-
     if (meta.length > 0) {
       delete meta[0]._id
     }
 
     return res.status(200).json({
       code: CODE.OK,
-      data: { total, ...meta[0], category, },
+      data: { total, ...meta[0], categorys },
       msg: '站点信息统计获取成功'
     })
   } catch (err) {

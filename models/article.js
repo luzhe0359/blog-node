@@ -26,6 +26,9 @@ const ArticleSchema = new Schema({
     // 内容 html
     htmlContent: { type: String, require: true },
 
+    // 是否置顶
+    isTop: { type: Boolean, default: false },
+
     // 字数
     numbers: { type: Number, default: 0 },
 

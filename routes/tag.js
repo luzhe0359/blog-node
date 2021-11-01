@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const Tag = require('../models/tag')
+const Article = require('../models/article')
 const { CODE } = require('../config/config')
 
 // 添加标签
@@ -64,6 +65,50 @@ router.get('/list', async (req, res, next) => {
     next(err)
   }
 });
+
+// 查找标签统计
+router.get('/count', async (req, res, next) => {
+  try {
+    const r = await Article.aggregate([
+      {
+        $match: {
+          state: 1,
+        }
+      },
+      { "$unwind": "$tags" },
+      { $group: { _id: '$tags', count: { $sum: 1 } } },
+      {
+        $lookup: {
+          from: "tags",
+          localField: "_id",
+          foreignField: "_id",
+          as: "tags"
+        }
+      },
+      {
+        $addFields: { // 将数组转对象
+          "name": {
+            $first: "$tags.name"
+          }
+        }
+      },
+      {
+        $project: {
+          tags: 0,
+        }
+      }
+    ])
+
+    return res.status(200).json({
+      code: CODE.OK,
+      data: r,
+      msg: '标签统计获取成功',
+    })
+  } catch (err) {
+    next(err)
+  }
+});
+
 
 
 // 根据_id 编辑标签信息

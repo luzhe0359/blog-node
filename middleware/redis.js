@@ -37,7 +37,8 @@ function set (key, val, time) {
             if (!err && reply) {
                 // 设置过期时间(单位：秒)
                 redisCli.expire(key, time || REDIS.TOKEN_TIME, (err, reply) => {
-                    console.log(chalk.green('保存', key, time || REDIS.TOKEN_TIME, val))
+                    // 保存
+                    // console.log(chalk.green('保存', key, time || REDIS.TOKEN_TIME, val))
                 })
             }
         } catch (error) {

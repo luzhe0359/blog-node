@@ -29,7 +29,6 @@ router.post('/login', async (req, res, next) => {
         msg: '用户名或密码错误!'
       })
     }
-    console.log(user.role);
     if (admin && user.role === "blacklist") {
       return res.status(200).json({
         code: CODE.ROLE_ERR,
@@ -107,15 +106,6 @@ router.post('/add', async (req, res, next) => {
 router.post('/username', async (req, res, next) => {
   let body = req.body
   try {
-    // 判断是否登录
-    const user = req.user
-    console.log(user);
-    // if (!user._id) {
-    //   return res.status(200).json({
-    //     code: CODE.NOT_LOGIN,
-    //     msg: '请先登录'
-    //   })
-    // }
     const u = await User.findOne({ username: body.username })
     if (u) {
       return res.status(200).json({
@@ -160,10 +150,7 @@ router.post('/nickname', async (req, res, next) => {
 
 
 // 查找用户列表
-router.get('/list', (req, res, next) => {
-  next();
-  // return res.status(200).json()
-}, async (req, res, next) => {
+router.get('/list', async (req, res, next) => {
   const { username = '', nickname = '', pageNum = 1, pageSize = 10, sortBy = 'createTime', descending = 1 } = req.query
   try {
     // 查询条件
@@ -206,7 +193,6 @@ router.get('/list', (req, res, next) => {
 
 // 根据_id 查找单个用户
 router.get('/:_id', async (req, res, next) => {
-  console.log(req.user);
   try {
     const r = await User.findById(req.user._id, { password: 0 })
 

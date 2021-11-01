@@ -37,7 +37,6 @@ router.get('/list', async (req, res, next) => {
     let limit = pageSize === 0 ? total : parseInt(pageSize) // 每页条数 (0 获取所有)
     let skip = (pageNum - 1) * limit // 跳过多少条
     let sort = {} // 排序
-    console.log(sortBy);
     sort[sortBy] = parseInt(descending)
 
     const r = await Link.find(filter)

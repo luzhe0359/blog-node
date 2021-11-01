@@ -22,6 +22,10 @@ app.use(compression())
 // 利用正则来匹配地址，打开对应的index页面，同时实现部署多个vue项目
 app.use(history(
   {
+    rewrites: [{ from: /^\/react/, to: '/react/index.html' },],
+    htmlAcceptHeaders: ['text/html', 'application/xhtml+xml'],
+  },
+  {
     rewrites: [{ from: /^\/admin/, to: '/admin/index.html' },],
     htmlAcceptHeaders: ['text/html', 'application/xhtml+xml'],
   },
@@ -35,33 +39,14 @@ app.use(history(
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-// process.env.NODE_ENV = process.env.NODE_ENV || 'development';
-//获取执行方式并判断使用哪种方法输出信息
-const ENV = process.env.NODE_ENV;
-// console.log(process.env);
-//ENV != production------>代表不是线上环境
-if (ENV != 'production') {
-  // console.log(ENV);
-  app.use(logger('dev')); //开发环境用默认得输出流就行了
-} else {
-  //写入对应的日志文件
-  const logFileName = path.join(__dirname, 'log', 'access.log');
-  // console.log(logFileName);
-  //创建写入流
-  const writeStream = fs.createWriteStream(logFileName, {
-    flags: 'a' //追加
-  });
-  //把输出流改成我们得写入流；就可以写入文件了
-  app.use(logger('combined', {
-    stream: writeStream
-  }));
-}
-// app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ limit: '20mb', extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/', express.static(path.join(__dirname, 'dist')));
+app.use(express.static(path.join(__dirname, 'admin')));
+app.use(express.static(path.join(__dirname, 'react')));
+// app.use('/', express.static(path.join(__dirname, 'dist')));
 app.use('/admin', express.static(path.join(__dirname, 'admin'))); // 后台管理
+app.use('/react', express.static(path.join(__dirname, 'react'))); // 前台react
 app.use(cookieParser());
 
 // 配置body-parser,只要加入这个配置，则在req请求对象上会多出来一个属性：body
