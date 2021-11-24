@@ -12,7 +12,7 @@ const AlbumSchema = new Schema({
     name: { type: String, require: true, validate: /\S+/ },
 
     // 描述
-    desc: String,
+    desc: { type: String },
 
     // 创建时间
     createTime: { type: Number, default: Date.now },

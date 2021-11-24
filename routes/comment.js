@@ -7,12 +7,13 @@ const { CODE } = require('../config/config')
 
 // 查找评论列表
 router.get('/list', async (req, res, next) => {
-  const { state, content, articleId, pageNum = 1, pageSize = 0, sortBy = 'createTime', descending = -1 } = req.query
+  const { type, state, content, articleId, pageNum = 1, pageSize = 0, sortBy = 'createTime', descending = -1 } = req.query
   try {
     // 查询条件
     let filter = {}
     content && (filter.content = { $regex: new RegExp(content, 'i') })
     articleId && (filter.articleId = articleId)
+    type && (filter.type = type)
     if (state == -1) {
       filter.state = { $nin: [-1] }
     }
@@ -48,6 +49,7 @@ router.get('/list', async (req, res, next) => {
       })
     }
 
+    console.log(r);
     return res.status(200).json({
       code: CODE.OK,
       data: r,
@@ -66,7 +68,7 @@ router.get('/list', async (req, res, next) => {
 
 // 添加评论
 router.post('/add', async (req, res, next) => {
-  const { articleId, commentId, to, content, level } = req.body
+  const { type, articleId, commentId, to, content, level } = req.body
 
   try {
     // 判断是否登录
@@ -90,10 +92,12 @@ router.post('/add', async (req, res, next) => {
         }
       }, { new: true })
     } else { // 父评论
-      await new Comment({ articleId, content, from: user._id }).save()
+      await new Comment({ type, articleId, content, from: user._id }).save()
     }
 
-    await Article.findByIdAndUpdate(articleId, { $inc: { 'meta.comments': 1 } })// 评论数 +1
+    if (articleId) {
+      await Article.findByIdAndUpdate(articleId, { $inc: { 'meta.comments': 1 } })// 评论数 +1
+    }
 
     res.status(200).json({
       code: CODE.OK,

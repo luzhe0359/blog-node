@@ -8,25 +8,29 @@ const User = require('../models/user')
 const { CRYPTO_KEY, CODE } = require('../config/config')
 const { aesDecrypt } = require('../middleware/crypto');
 const { jwtEncrypt } = require('../middleware/jwt');
-const { set, remove } = require('../middleware/redis');
+const { set, get, remove } = require('../middleware/redis');
+const sendEmail = require('../middleware/nodemailer');
 
 
 // 用户登录
 router.post('/login', async (req, res, next) => {
   const { admin = '' } = req.headers;
-  let body = req.body
+  let { password, account } = req.body
   try {
     // 获取初始密码
-    let encryptPassword = aesDecrypt(body.password)
+    let encryptPassword = aesDecrypt(password)
     // 对初始密码、进行不可逆加密
     let decryptPassword = sha256(encryptPassword + CRYPTO_KEY).toString();
-    body.password = decryptPassword
+    let userinfo = {
+      $or: [{ username: account }, { email: account }], // 用户名或密码正确
+      password: decryptPassword
+    }
     // 查找用户
-    let user = await User.findOne(body).select({ password: 0 })
+    let user = await User.findOne(userinfo).select({ password: 0 })
     if (!user) {
       return res.status(200).json({
         code: CODE.USER_ERR,
-        msg: '用户名或密码错误!'
+        msg: '账号或密码错误!'
       })
     }
     if (admin && user.role === "blacklist") {
@@ -85,6 +89,14 @@ router.post('/logout', async (req, res, next) => {
 router.post('/add', async (req, res, next) => {
   let body = req.body
   try {
+    let hasCode = await get(body.email)
+    // 验证码存在，且与传来的值相等
+    if (!hasCode || hasCode !== body.code) {
+      return res.status(200).json({
+        code: CODE.OTHER_ERR,
+        msg: '验证码错误'
+      })
+    }
     // 获取初始密码
     let encryptPassword = aesDecrypt(body.password)
     // 对初始密码、进行不可逆加密
@@ -92,6 +104,8 @@ router.post('/add', async (req, res, next) => {
     body.password = decryptPassword
     // 创建用户，执行注册
     await new User(body).save()
+    // 移除验证码
+    await remove(body.email)
 
     res.status(200).json({
       code: CODE.OK,
@@ -102,11 +116,60 @@ router.post('/add', async (req, res, next) => {
   }
 });
 
+// 邮件验证码
+router.post('/code', async (req, res, next) => {
+  let { email, username } = req.body
+  try {
+    let info = await sendEmail(email, username)
+    // 保存至redis
+    set(email, info.randomNumber, 600)
+    return res.status(200).json({
+      code: CODE.OK,
+      msg: '发送成功'
+    })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// 修改密码
+router.post('/password', async (req, res, next) => {
+  let { email, password, code } = req.body
+  try {
+    let hasCode = await get(email)
+    // 验证码存在，且与传来的值相等
+    if (!hasCode || hasCode !== code) {
+      return res.status(200).json({
+        code: CODE.OTHER_ERR,
+        msg: '验证码错误'
+      })
+    }
+    // 获取新密码的初始密码
+    let encryptPassword = aesDecrypt(password)
+    // 对新密码的初始密码、进行不可逆加密
+    let decryptPassword = sha256(encryptPassword + CRYPTO_KEY).toString();
+
+    const oldUserInfo = await User.find({ email });
+    oldUserInfo.password = decryptPassword
+    const r = await User.findByIdAndUpdate(oldUserInfo._id, oldUserInfo, { "fields": { password: 0 }, new: true })
+    // 移除验证码
+    await remove(email)
+
+    return res.status(200).json({
+      code: CODE.OK,
+      data: r,
+      msg: '修改成功'
+    })
+  } catch (err) {
+    next(err)
+  }
+})
+
 // 校验用户名
 router.post('/username', async (req, res, next) => {
-  let body = req.body
+  let { username } = req.body
   try {
-    const u = await User.findOne({ username: body.username })
+    const u = await User.findOne({ username })
     if (u) {
       return res.status(200).json({
         code: CODE.OK,
@@ -127,13 +190,13 @@ router.post('/username', async (req, res, next) => {
 
 // 校验昵称
 router.post('/nickname', async (req, res, next) => {
-  let body = req.body
+  let { nickname } = req.body
   try {
-    const u = await User.findOne({ nickname: body.nickname })
+    const u = await User.findOne({ nickname })
     if (u) {
       return res.status(200).json({
         code: CODE.OK,
-        data: 'Username has been used',
+        data: 'Nickname has been used',
         msg: '昵称已存在'
       })
     }
@@ -148,6 +211,28 @@ router.post('/nickname', async (req, res, next) => {
   }
 });
 
+// 校验邮箱
+router.post('/email', async (req, res, next) => {
+  let { email } = req.body
+  try {
+    const u = await User.findOne({ email })
+    if (u) {
+      return res.status(200).json({
+        code: CODE.OK,
+        data: 'Email has been used',
+        msg: '邮箱已被使用'
+      })
+    }
+
+    res.status(200).json({
+      code: CODE.OK,
+      data: '',
+      msg: '邮箱可以使用'
+    })
+  } catch (err) {
+    next(err)
+  }
+});
 
 // 查找用户列表
 router.get('/list', async (req, res, next) => {

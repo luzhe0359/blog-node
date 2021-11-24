@@ -17,8 +17,14 @@ const PhotoSchema = new Schema({
     // 大小
     size: { type: String, require: true },
 
-    // 类型
+    // 类型 
     type: { type: String },
+
+    // 分类 | avator | article-content | article-cover | album | other
+    classify: { type: String },
+
+    // 描述
+    desc: { type: String },
 
     // 相册
     album: { type: Schema.Types.ObjectId, ref: 'Album' },

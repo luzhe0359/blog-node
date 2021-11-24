@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>邮箱验证 | 足各路的个人博客</title>
+    <link rel="icon" type="image/ico" href="https://zugelu.oss-cn-beijing.aliyuncs.com/other/favicon.ico">
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+</head>
+
+<style>
+    h1 {
+        text-align: center;
+    }
+
+    i {
+        text-decoration: underline;
+    }
+
+    .code-body {
+        font-size: 18px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .code-content {
+        margin-top: 60px;
+        text-indent: 2em;
+    }
+
+    .code-footer {
+        margin-top: 100px;
+        text-align: right;
+    }
+</style>
+
+<body>
+    <div class="code-body">
+        <h1>邮箱验证</h1>
+        <div class="code-content">
+            您收的的验证码为：
+            <strong>
+                <%= code %>
+            </strong>, 有效时长10分钟, 请及时前往前台填写验证。
+            <% if ( username.length> 0) { %>
+                此次验证的账号为：
+                <i>
+                    <%= username %>
+                </i>, 如有必要, 请保留该邮件。
+                <% } else { %>
+                    此次为修改密码验证，请确保是你本人操作。
+                    <% } %>
+                        本验证码最终解释权归足各路，如有任何疑问，请联系足各路，感谢您的理解。
+        </div>
+        <div class="code-footer">
+            <p><a href="https://zugelu.com">足各路的个人博客</a></p>
+            <p>
+                <%= currentTime %>
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

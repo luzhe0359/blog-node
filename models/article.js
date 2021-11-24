@@ -12,7 +12,7 @@ const ArticleSchema = new Schema({
     title: { type: String, require: true, validate: /\S+/ },
 
     // 作者
-    author: { type: Schema.Types.ObjectId, ref: 'User' },   //作为外键
+    author: { type: Schema.Types.ObjectId, ref: 'User' },
 
     // 描述
     desc: { type: String, require: true },
@@ -33,7 +33,7 @@ const ArticleSchema = new Schema({
     numbers: { type: Number, default: 0 },
 
     // 封面
-    imgUrl: { type: String, default: '' },
+    imgCover: { type: String, default: '' },
 
     // 文章类型  | 1:原创 | 2:转载 
     type: { type: Number, default: 1 },

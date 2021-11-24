@@ -34,7 +34,7 @@ const userSchema = new Schema({
     gender: { type: Number, enum: [0, 1, -1], default: -1 },
 
     // 头像
-    avatar: { type: String, default: '/images/logo.webp' },
+    avatar: { type: String, default: 'https://oss.zugelu.com/other/logo.webp' },
 
     // 个人简介
     about: { type: String, default: '这个人很懒，什么都没留下~' },

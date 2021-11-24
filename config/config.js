@@ -3,6 +3,7 @@
  */
 module.exports = {
     DB_URL: 'mongodb://127.0.0.1:27017/lzzzblog?authSource=admin', // mongoose 链接地址
+    OSS_BASE_URL: 'https://oss.zugelu.com/',
     CRYPTO_KEY: 'lzzzLOVEtian3344', // 16位加密密钥 AES的密钥长度有 128、192、256位，3种长度
     CRYPTO_IV: 'lzzzLOVEtian3344', // 16位偏移量, 可以与秘钥相同
     TOKEN_TIME: '100y', // token失效时间
@@ -30,6 +31,8 @@ module.exports = {
     CORS_WHITE_LIST: [ // 跨域白名单
         'http://127.0.0.1:8081',
         'http://localhost:8081',
+        'http://127.0.0.1:8082',
+        'http://localhost:8082',
         'http://127.0.0.1:8080',
         'http://localhost:8080',
         'http://127.0.0.1:3001',

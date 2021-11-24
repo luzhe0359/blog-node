@@ -9,7 +9,10 @@ const Schema = mongoose.Schema;
 
 const CommentSchema = new Schema({
     // 评论所在的文章 id
-    articleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Article', required: true },
+    articleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Article' },
+
+    // 评论所在的文章 id
+    photoId: { type: mongoose.Schema.Types.ObjectId, ref: 'Photo' },
 
     // 谁在评论
     from: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -35,7 +38,7 @@ const CommentSchema = new Schema({
             // 点赞的用户
             likes: [{ type: Schema.Types.ObjectId, ref: 'User', required: true }],
 
-            // content
+            // 评论内容
             content: { type: String, required: true, validate: /\S+/ },
 
             // 状态 | 0:待审核 | 1:已通过 | -1:未通过
@@ -51,6 +54,9 @@ const CommentSchema = new Schema({
 
     // 状态(先发表，后审核) | 0:待审核 | 1:已通过 | -1:未通过
     state: { type: Number, default: 0 },
+
+    // 类型 | 1:文章 | 2:留言 | 3:相册
+    type: { type: Number, default: 1 },
 
     // 创建时间
     createTime: { type: Number, default: Date.now },

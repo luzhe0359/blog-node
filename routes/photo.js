@@ -4,8 +4,9 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+const putAliOss = require('../middleware/oss');
 const Photo = require('../models/photo')
-const { CODE } = require('../config/config')
+const { CODE, OSS_BASE_URL } = require('../config/config')
 
 var storage = multer.diskStorage({
     //设置上传后文件路径
@@ -29,14 +30,22 @@ const uploader = multer({ storage: storage })
 
 router.post('/upload', uploader.single('photo'), async (req, res, next) => {
     const file = req.file
+    const { classify, albumId } = req.query
+
     try {
+        console.log(file);
+        // 上传至阿里云OSS
+        await putAliOss(file.filename, classify)
+        // 阿里云图片URL
+        const ossUrl = `${OSS_BASE_URL}${classify}/${file.filename}`
         // 保存到数据库
         const r = await new Photo({
             name: file.originalname,
-            url: '/images/' + file.filename,
+            url: ossUrl,
             size: file.size,
             type: file.mimetype,
-            album: req.query.albumId
+            album: albumId,
+            classify
         }).save()
         res.status(200).json({
             code: CODE.OK,
@@ -54,15 +63,19 @@ router.post('/upload', uploader.single('photo'), async (req, res, next) => {
 router.post('/uploads', uploader.array('photo', 10), async (req, res, next) => {
     if (!req.files) return
     let files = req.files
+    const { classify, albumId } = req.query
 
     try {
         for (let i = 0; i < files.length; i++) {
+            await putAliOss(files[i].filename, classify)
+            const ossUrl = `${OSS_BASE_URL}${classify}/${files[i].filename}`
             let photo = {
                 name: files[i].originalname,
-                url: '/images/' + files[i].filename,
+                url: ossUrl,
                 size: files[i].size,
                 type: files[i].mimetype,
-                album: req.query.albumId
+                album: albumId,
+                classify
             }
             // 保存到数据库
             await new Photo(photo).save()
@@ -80,8 +93,9 @@ router.post('/uploads', uploader.array('photo', 10), async (req, res, next) => {
 router.get('/list', async (req, res, next) => {
     const { albumId = '', pageNum = 1, pageSize = 10, sortBy = 'createTime', descending = 1 } = req.query
     try {
-        let filter = {}
+        let filter = { classify: 'album' }
         albumId && (filter.album = albumId)
+
         let select = {
         }
 
