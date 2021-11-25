@@ -3,7 +3,7 @@ const router = express.Router();
 
 const Tag = require('../models/tag')
 const Article = require('../models/article')
-const { CODE } = require('../config/config')
+const { CODE } = require('../config')
 
 // 添加标签
 router.post('/add', async (req, res, next) => {

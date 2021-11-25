@@ -5,7 +5,7 @@ const router = express.Router();
 const sha256 = require("crypto-js/sha256");
 
 const User = require('../models/user')
-const { CRYPTO_KEY, CODE } = require('../config/config')
+const { CRYPTO_KEY, CODE } = require('../config')
 const { aesDecrypt } = require('../middleware/crypto');
 const { jwtEncrypt } = require('../middleware/jwt');
 const { set, get, remove } = require('../middleware/redis');

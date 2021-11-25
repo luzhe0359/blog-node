@@ -1,6 +1,6 @@
 const url = require('url')
 const jwt = require('jsonwebtoken');
-const { REDIS, CODE, CRYPTO_KEY, TOKEN_TIME, ROUTE_WHITE_LIST } = require('../config/config')
+const { REDIS, CODE, CRYPTO_KEY, TOKEN_TIME, ROUTE_WHITE_LIST } = require('../config')
 const { redisCli } = require('./redis')
 
 

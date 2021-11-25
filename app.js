@@ -13,7 +13,7 @@ const history = require('connect-history-api-fallback');
 const { refreshToken } = require('./middleware/jwt');
 
 // config
-const { CRYPTO_KEY, CODE, ROUTE_WHITE_LIST, CORS_WHITE_LIST } = require('./config/config');
+const { CRYPTO_KEY, CODE, ROUTE_WHITE_LIST, CORS_WHITE_LIST } = require('./config');
 const { log } = require('debug');
 
 const app = express();

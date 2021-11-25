@@ -5,7 +5,7 @@ const fs = require('fs');
 
 const Album = require('../models/album')
 const Photo = require('../models/photo')
-const { CODE } = require('../config/config')
+const { CODE } = require('../config')
 
 // 添加相册
 router.post('/add', async (req, res, next) => {

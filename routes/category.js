@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const Category = require('../models/category')
-const { CODE } = require('../config/config')
+const { CODE } = require('../config')
 
 // 添加分类
 router.post('/add', async (req, res, next) => {

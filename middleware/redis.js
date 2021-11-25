@@ -2,7 +2,7 @@
 const redis = require('redis')
 const chalk = require('chalk')
 const { promisify } = require("util");
-const { REDIS } = require('../config/config')
+const { REDIS } = require('../config')
 
 
 //  创建连接  第一个参数是 第二个参数 

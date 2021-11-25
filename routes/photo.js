@@ -6,7 +6,7 @@ const fs = require('fs');
 
 const putAliOss = require('../middleware/oss');
 const Photo = require('../models/photo')
-const { CODE, OSS_BASE_URL } = require('../config/config')
+const { CODE, OSS_BASE_URL } = require('../config')
 
 var storage = multer.diskStorage({
     //设置上传后文件路径
@@ -15,9 +15,10 @@ var storage = multer.diskStorage({
     },
     //给上传文件重命名，获取添加后缀名
     filename: function (req, file, cb) {
+        console.log(file.originalname);
         let exname = path.extname(file.originalname);
         //给图片加上时间戳格式防止重名
-        filename = file.fieldname + "-" + Date.now() + exname;
+        filename = Date.now() + exname;
         cb(null, filename)
     }
 })
@@ -31,11 +32,11 @@ const uploader = multer({ storage: storage })
 router.post('/upload', uploader.single('photo'), async (req, res, next) => {
     const file = req.file
     const { classify, albumId } = req.query
+    const { user: { _id } } = req
 
     try {
-        console.log(file);
         // 上传至阿里云OSS
-        await putAliOss(file.filename, classify)
+        await putAliOss(file.filename, classify, _id)
         // 阿里云图片URL
         const ossUrl = `${OSS_BASE_URL}${classify}/${file.filename}`
         // 保存到数据库

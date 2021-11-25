@@ -1,11 +1,15 @@
 /**
  * 全局配置
  */
+const { CRYPTO_KEY, CRYPTO_IV, ACCESS_KEY_ID, ACCESS_KEY_SECRET } = require('./secret')
+
 module.exports = {
     DB_URL: 'mongodb://127.0.0.1:27017/lzzzblog?authSource=admin', // mongoose 链接地址
     OSS_BASE_URL: 'https://oss.zugelu.com/',
-    CRYPTO_KEY: 'lzzzLOVEtian3344', // 16位加密密钥 AES的密钥长度有 128、192、256位，3种长度
-    CRYPTO_IV: 'lzzzLOVEtian3344', // 16位偏移量, 可以与秘钥相同
+    CRYPTO_KEY, // 16位加密密钥 AES的密钥长度有 128、192、256位，3种长度
+    CRYPTO_IV, // 16位偏移量, 可以与秘钥相同
+    ACCESS_KEY_ID,
+    ACCESS_KEY_SECRET,
     TOKEN_TIME: '100y', // token失效时间
     CODE: { // 业务状态码
         OK: 2000, // 请求成功

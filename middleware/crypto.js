@@ -1,5 +1,5 @@
 const CryptoJS = require("crypto-js");
-const { CRYPTO_KEY, CRYPTO_IV } = require('../config/config')
+const { CRYPTO_KEY, CRYPTO_IV } = require('../config')
 const key = CryptoJS.enc.Utf8.parse(CRYPTO_KEY); // 秘钥
 const iv = CryptoJS.enc.Utf8.parse(CRYPTO_IV);
 

@@ -4,7 +4,7 @@ const router = express.Router();
 const Article = require('../models/article')
 const Comment = require('../models/comment')
 const User = require('../models/user')
-const { CODE } = require('../config/config')
+const { CODE } = require('../config')
 const { set, get } = require('../middleware/redis');
 
 

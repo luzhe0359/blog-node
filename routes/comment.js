@@ -3,7 +3,7 @@ const router = express.Router();
 
 const Comment = require('../models/comment')
 const Article = require('../models/article')
-const { CODE } = require('../config/config')
+const { CODE } = require('../config')
 
 // 查找评论列表
 router.get('/list', async (req, res, next) => {

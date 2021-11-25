@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const Timeline = require('../models/timeline')
-const { CODE } = require('../config/config')
+const { CODE } = require('../config')
 
 // 添加时间线
 router.post('/add', async (req, res, next) => {

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const Link = require('../models/link')
-const { CODE } = require('../config/config')
+const { CODE } = require('../config')
 
 // 添加友链
 router.post('/add', async (req, res, next) => {

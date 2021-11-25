@@ -39,6 +39,9 @@ const userSchema = new Schema({
     // 个人简介
     about: { type: String, default: '这个人很懒，什么都没留下~' },
 
+    // 个人网站
+    website: { type: String, default: '' },
+
     // 权限 | 0:没有权限限制 | 1:不可以评论 | 2:不可以登录
     status: { type: Number, enum: [0, 1, 2], default: 0 },
 

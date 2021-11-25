@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const chalk = require('chalk')
-const { DB_URL } = require('../config/config')
+const { DB_URL } = require('../config')
 
 // 去除弃用警告
 mongoose.set('useFindAndModify', false)
