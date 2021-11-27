@@ -14,13 +14,13 @@ const sendEmail = require('../middleware/nodemailer');
 
 // 用户登录
 router.post('/login', async (req, res, next) => {
-  const { admin = '' } = req.headers;
+  const { admin = '' } = req.headers
   let { password, account } = req.body
   try {
     // 获取初始密码
     let encryptPassword = aesDecrypt(password)
     // 对初始密码、进行不可逆加密
-    let decryptPassword = sha256(encryptPassword + CRYPTO_KEY).toString();
+    let decryptPassword = sha256(encryptPassword + CRYPTO_KEY).toString()
     let userinfo = {
       $or: [{ username: account }, { email: account }], // 用户名或密码正确
       password: decryptPassword

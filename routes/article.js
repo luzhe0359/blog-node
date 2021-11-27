@@ -12,7 +12,6 @@ const { set, get } = require('../middleware/redis');
 router.get('/list', async (req, res, next) => {
   const { title, category, tag, state, isTop, pageNum = 1, pageSize = 10, sortBy = 'createTime', descending = -1 } = req.query
   try {
-    console.log(tag)
     // 查询条件
     let filter = {}
     title && (filter.title = { $regex: new RegExp(title, 'i') })
@@ -126,6 +125,7 @@ router.post('/add', async (req, res, next) => {
 
 // 根据_id 查找单个文章
 router.get('/:_id', async (req, res, next) => {
+  const { admin = '' } = req.headers
   const { _id } = req.params
   let viewKey = req.ip + '-' + _id
 
@@ -138,7 +138,7 @@ router.get('/:_id', async (req, res, next) => {
     // 查找redis记录
     let hasView = await get(viewKey)
     // 未预览
-    if (!hasView) {
+    if (!hasView && !admin) {
       await Article.findByIdAndUpdate(_id, {
         $inc: { 'meta.views': 1 } // 阅读量 +1
       })

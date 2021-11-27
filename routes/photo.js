@@ -15,7 +15,6 @@ var storage = multer.diskStorage({
     },
     //给上传文件重命名，获取添加后缀名
     filename: function (req, file, cb) {
-        console.log(file.originalname);
         let exname = path.extname(file.originalname);
         //给图片加上时间戳格式防止重名
         filename = Date.now() + exname;
@@ -38,7 +37,7 @@ router.post('/upload', uploader.single('photo'), async (req, res, next) => {
         // 上传至阿里云OSS
         await putAliOss(file.filename, classify, _id)
         // 阿里云图片URL
-        const ossUrl = `${OSS_BASE_URL}${classify}/${file.filename}`
+        const ossUrl = `${OSS_BASE_URL}${classify}/${_id}-${file.filename}`
         // 保存到数据库
         const r = await new Photo({
             name: file.originalname,
@@ -65,11 +64,12 @@ router.post('/uploads', uploader.array('photo', 10), async (req, res, next) => {
     if (!req.files) return
     let files = req.files
     const { classify, albumId } = req.query
+    const { user: { _id } } = req
 
     try {
         for (let i = 0; i < files.length; i++) {
-            await putAliOss(files[i].filename, classify)
-            const ossUrl = `${OSS_BASE_URL}${classify}/${files[i].filename}`
+            await putAliOss(files[i].filename, classify, _id)
+            const ossUrl = `${OSS_BASE_URL}${classify}/${_id}-${files[i].filename}`
             let photo = {
                 name: files[i].originalname,
                 url: ossUrl,
@@ -118,7 +118,7 @@ router.get('/list', async (req, res, next) => {
         return res.status(200).json({
             code: CODE.OK,
             data: r,
-            msg: '相册列表获取成功',
+            msg: '照片列表获取成功',
             pageNum: pageNum - 0,
             pageSize: limit,
             sortBy: sortBy,

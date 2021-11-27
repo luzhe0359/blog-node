@@ -49,7 +49,6 @@ router.get('/list', async (req, res, next) => {
       })
     }
 
-    console.log(r);
     return res.status(200).json({
       code: CODE.OK,
       data: r,

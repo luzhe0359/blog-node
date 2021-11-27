@@ -1,7 +1,7 @@
 /**
  * 全局配置
  */
-const { CRYPTO_KEY, CRYPTO_IV, ACCESS_KEY_ID, ACCESS_KEY_SECRET } = require('./secret')
+const { CRYPTO_KEY, CRYPTO_IV, ACCESS_KEY_ID, ACCESS_KEY_SECRET, NODEMAILER_AUTH_PASS } = require('./secret')
 
 module.exports = {
     DB_URL: 'mongodb://127.0.0.1:27017/lzzzblog?authSource=admin', // mongoose 链接地址
@@ -10,6 +10,7 @@ module.exports = {
     CRYPTO_IV, // 16位偏移量, 可以与秘钥相同
     ACCESS_KEY_ID,
     ACCESS_KEY_SECRET,
+    NODEMAILER_AUTH_PASS,
     TOKEN_TIME: '100y', // token失效时间
     CODE: { // 业务状态码
         OK: 2000, // 请求成功
@@ -47,5 +48,6 @@ module.exports = {
         'http://localhost:5000',
         'https://www.zugelu.com',
         'https://zugelu.com',
+        /\.zugelu\.com$/
     ]
 }
