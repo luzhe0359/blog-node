@@ -1,7 +1,6 @@
 
 const redis = require('redis')
 const chalk = require('chalk')
-const { promisify } = require("util");
 const { REDIS } = require('../config')
 
 

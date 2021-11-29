@@ -68,7 +68,6 @@ router.get('/list', async (req, res, next) => {
   }
 });
 
-
 // 根据_id 编辑相册信息
 router.put('/:_id', async (req, res, next) => {
   try {

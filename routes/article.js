@@ -60,25 +60,25 @@ router.get('/tophot', async (req, res, next) => {
     let skip = (pageNum - 1) * limit
     // 查询条件
     let hotFilter = {
-      isTop: true,
       state: 1
     }
     // 总数
     const hotTotal = await Article.countDocuments(hotFilter)
     const hotList = await Article.find(hotFilter)
-      .sort({ 'createTime': -1 })
+      .sort({ 'meta.views': -1 })
       .skip(skip)
       .limit(limit)
       .populate(['tags', 'category', { path: 'author', select: { password: 0 } }])
 
     // 查询条件
     let topFilter = {
+      isTop: true,
       state: 1
     }
     // 总数
     const topTotal = await Article.countDocuments(topFilter)
     const topList = await Article.find(topFilter)
-      .sort({ 'meta.views': -1 })
+      .sort({ 'createTime': -1 })
       .skip(skip)
       .limit(limit)
       .populate(['tags', 'category', { path: 'author', select: { password: 0 } }])
