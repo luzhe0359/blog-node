@@ -149,7 +149,15 @@ router.post('/password', async (req, res, next) => {
     // 对新密码的初始密码、进行不可逆加密
     let decryptPassword = sha256(encryptPassword + CRYPTO_KEY).toString();
 
-    const oldUserInfo = await User.find({ email });
+    let oldUserInfo = await User.find({ email });
+    if(!oldUserInfo.length) {
+      return res.status(200).json({
+        code: CODE.OTHER_ERR,
+        msg: '邮箱不存在'
+      })
+    }
+
+    oldUserInfo = oldUserInfo[0]
     oldUserInfo.password = decryptPassword
     const r = await User.findByIdAndUpdate(oldUserInfo._id, oldUserInfo, { "fields": { password: 0 }, new: true })
     // 移除验证码

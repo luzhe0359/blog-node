@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 
 const Article = require('../models/article')
+const Category = require('../models/category')
+const Tag = require('../models/tag')
 const Comment = require('../models/comment')
 const User = require('../models/user')
 const { CODE } = require('../config')
@@ -16,7 +18,7 @@ router.get('/list', async (req, res, next) => {
     let filter = {}
     title && (filter.title = { $regex: new RegExp(title, 'i') })
     category && (filter.category = category)
-    tag && (filter.tags = { $in: [tag] })
+    tag && (filter.tags = { $in: tag })
     state && (filter.state = state)
     isTop && (filter.isTop = isTop)
     let select = {
@@ -251,39 +253,43 @@ router.post('/nolike', async (req, res, next) => {
 router.post('/count', async (req, res, next) => {
   try {
     // 文章总数
-    const total = await Article.countDocuments()
+    const articles = await Article.countDocuments({ state: 1 })
+    // 分类总数
+    const categories = await Category.countDocuments()
+    // 标签总数
+    const tags = await Tag.countDocuments()
     // 其他统计
     const meta = await Article.aggregate([{ $group: { _id: null, views: { $sum: "$meta.views" }, likes: { $sum: "$meta.likes" }, comments: { $sum: "$meta.comments" } } }])
-    // 分类统计
-    const categorys = await Article.aggregate([
-      {
-        $group: {
-          _id: '$category',
-          count: { $sum: 1 },
-        }
-      },
-      {
-        $lookup: {
-          from: "categories",
-          localField: "_id",
-          foreignField: "_id",
-          as: "articles"
-        },
-      },
-      {
-        $addFields: { // 将数组转对象
-          "name": {
-            $first: "$articles.name"
-          }
-        }
-      },
-      {
-        $project: {
-          articles: 0,
-          _id: 0
-        },
-      },
-    ])
+    // // 分类统计
+    // const categorys = await Article.aggregate([
+    //   {
+    //     $group: {
+    //       _id: '$category',
+    //       count: { $sum: 1 },
+    //     }
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "categories",
+    //       localField: "_id",
+    //       foreignField: "_id",
+    //       as: "articles"
+    //     },
+    //   },
+    //   {
+    //     $addFields: { // 将数组转对象
+    //       "name": {
+    //         $first: "$articles.name"
+    //       }
+    //     }
+    //   },
+    //   {
+    //     $project: {
+    //       articles: 0,
+    //       _id: 0
+    //     },
+    //   },
+    // ])
 
     if (meta.length > 0) {
       delete meta[0]._id
@@ -291,7 +297,7 @@ router.post('/count', async (req, res, next) => {
 
     return res.status(200).json({
       code: CODE.OK,
-      data: { total, ...meta[0], categorys },
+      data: { articles, categories, tags, ...meta[0] },
       msg: '站点信息统计获取成功'
     })
   } catch (err) {

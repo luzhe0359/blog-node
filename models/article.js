@@ -33,7 +33,7 @@ const ArticleSchema = new Schema({
     numbers: { type: Number, default: 0 },
 
     // 封面
-    imgCover: { type: String, default: '' },
+    imgCover: { type: String, default: 'https://oss.zugelu.com/other/not_found.png' },
 
     // 文章类型  | 1:原创 | 2:转载 
     type: { type: Number, default: 1 },
