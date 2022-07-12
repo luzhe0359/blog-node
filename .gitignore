@@ -1,6 +1,5 @@
 node_modules
 dist
-config/secret.js
 https
 admin
 react
